@@ -37,7 +37,7 @@ setup = function(Nvols, Nshelves, shelf_width, sfree_space){
         } 
     } 
     
-    shelves$perc_used = shelves$in_use/36  # sets perc_used
+    shelves$perc_used = shelves$in_use/shelf_width  # sets perc_used
     
     # =====================================================
     # Initialization: set 10% of books to 'checked out' prior to running any simulations
@@ -55,7 +55,7 @@ setup = function(Nvols, Nshelves, shelf_width, sfree_space){
         shelves$in_use[books$shelf_id[i]] <- shelves$in_use[books$shelf_id[i]] - books$width[i]
     }
     
-    return(list(books=books,shelves=shelves)) # return books shelves and max_shelved
+    return(list(books=books,shelves=shelves)) # return books shelves
     
 }
 
