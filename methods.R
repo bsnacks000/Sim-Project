@@ -69,10 +69,24 @@ purchase_books = function(flag){
 
 
 # round of de-duplicating (textbooks)
-de_dup = function(books){}
+de_dup = function(books){
+    books = books[-which(books$dedup), ] # dedup and return
+    return(books)
+}
 
 # 2% of the collection gets newly checked out -> check flag
-check_outs = function(books){}
+check_outs = function(books){
+    n_to_chkout = round(nrow(books) * .02) # number of rows to randomly checkout
+    book_ids = books[sample(which(!books$chkdout), n_to_chkout), ]$book_id
+    books$chkdout[books$book_id %in% chkdout_ids] = 1
+    return(books)
+}
+
 
 # 2% of the collection gets checked in (not the same as the check outs)
-check_ins = function(books){}
+check_ins = function(books){
+    n_to_pull = round(length(books$chkdout[books$chkdout == 1])* .02) # 2% of previously checked out books (this might need to change) 
+    book_ids = books[sample(which(books$chkdout==1), n_to_pull), ]
+    books$chkdout[books$book_id %in% chkdout_ids] = 0
+    return(books)
+}
