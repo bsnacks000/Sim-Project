@@ -21,10 +21,18 @@ update_shelves = function(books, shelves, new_texts, new_non_texts){
     
 }
 
+# special logic for appending a textbook df to main library df
+add_textbooks = function(new_books){
+    
+}
 
+#speical logic for appending a non-textbook df to main library df
+add_non_textbooks = function(new_books){
+    
+}
 
-book_width = function(a,b){        # utility returns book width between a and b for single book
-    rtriangle(1, a, b, (a + b)/b )
+book_widths = function(n,a,b){        # utility returns book widths between a and b for n books
+    rtriangle(n, a, b, (a + b)/b )
 }
 
 
@@ -40,19 +48,24 @@ weeding = function(books){
 # set of textbook purchases (simulated book widths) - 2 copies of 3 to 5 books
 # set flag to 'n', 't' for text-book or non-textbook
 # return a new dataframe to be appended to books in outer scope
-purchase_non_textbooks = function(){
-    n_books = round(runif(1,5,26))
-    book_type = 'n'
+# this is a blank order... all field's build/add logic is done in the update_shelves() function
+purchase_books = function(flag){
     
+    if (flag=='n')      # branch for text/nontext -- R throws an exception if not 'n /'t'
+        n_books = round(runif(1,5,26))
+    else if (flag=='t')
+        n_books = round(runif(1,3,6))
+    
+    width = book_widths(n_books,1,2) # calls utility function book_widths()
+    btype = rep(flag,n_books)       # sets flags
+    
+    book_id = copym = dupeof = shelf_id = chkdout = dedupe = rep(0,n_books)
+    purchase_order = data.frame(
+        book_id, btype,copym,dupeof,shelf_id,width,chkdout,dedupe
+    )
     
     return(purchase_order)
 } 
-
-purchase_textbooks = function(){
-    
-    
-    return(purchase_order)
-}
 
 
 # round of de-duplicating (textbooks)
