@@ -81,5 +81,3 @@ setup = function(Nvols, Nshelves, shelf_width, sfree_space,textb_masters){
     
 }
 
-x = setup(1000,50,36,0.1,0.05)
-View(x$books)
