@@ -1,7 +1,7 @@
 # can import this function using source("setup.R")
 # returns list of 2 dataframes: books and shelves
 
-setup = function(Nvols, Nshelves, shelf_width, sfree_space){
+setup = function(Nvols, Nshelves, shelf_width, sfree_space,textb_masters){
     
     library(triangle)
     
@@ -9,17 +9,43 @@ setup = function(Nvols, Nshelves, shelf_width, sfree_space){
     max_shelved <- shelf_width - (shelf_width * sfree_space)
 
     # Initialize 'books' data frame
-    books <- data.frame(book_id = 1:Nvols, shelf_id = numeric(Nvols),
-                        width = numeric(Nvols), chkdout = numeric(Nvols), stringsAsFactors = FALSE)
+    books <- data.frame(book_id = 1:Nvols, btype = character(Nvols), copym = numeric(Nvols), 
+                        dupeof = numeric(Nvols), shelf_id = numeric(Nvols), width = numeric(Nvols),
+                        chkdout =numeric(Nvols), dedupe = numeric(Nvols), stringsAsFactors = FALSE)
     
     # set book widths: distrib is between 1-2 inches; assume UNIFORM distribution
-    # NOTE: distribution to be sampled from can be changed to anything we want
-    a <- 1 # set lower bound of triangular distribution
-    b <- 2 # set upper bound of triangular distribution
-    
     # now sample from triangular distribution: Number of samples = number of books ('Nvols')
+    a <- 1 ; b <- 2 # upper/lower bound 
     books$width <- rtriangle(Nvols, a, b, (a + b)/b )
     
+    books$btype <- 'n' # initialize book type to n for non-textbook
+    
+    # then set percentage of books to textbook to textbook master copies
+    # start by picking random sample of books
+    tbm <- sort(sample(books$book_id, (Nvols * textb_masters), replace = FALSE))
+    
+    # For each book_id in tbm, set btype = 't', copym = 1, and create copies of
+    for (i in tbm) {
+        # if the book has not already been set to type 't', proceed
+        # otherwise ignore and continue
+        if (books$btype[i] != 't') {
+            # set btype to 't'
+            books$btype[i] <- 't'
+            # set copym to '1'
+            books$copym[i] <- 1
+            # get number of copies of textbook via random uniform sample between 1 and 3
+            tb_copies <- round(runif(1, min = 1, max = 3))
+            
+            # create copies of textbook directly adjacent to master copy
+            k <- i + 1
+            while (k <= Nvols & (k <= i + tb_copies) ) {
+                books$btype[k] <- 't'
+                books$dupeof[k] <- books$book_id[i]
+                k <- k + 1
+            }
+        } 
+    } 
+
     # Initialize 'shelves' data frame
     shelves <- data.frame(shelf_id = 1:Nshelves, in_use = numeric(Nshelves), 
                           perc_used = numeric(Nshelves), stringsAsFactors = FALSE)
@@ -39,10 +65,6 @@ setup = function(Nvols, Nshelves, shelf_width, sfree_space){
     
     shelves$perc_used = shelves$in_use/shelf_width  # sets perc_used
     
-    # =====================================================
-    # Initialization: set 10% of books to 'checked out' prior to running any simulations
-    # =====================================================
-    
     # select 10% of book_id values to set to 'checked out' status
     c_out <- sample(books$book_id, (Nvols * .10), replace = FALSE)
     
@@ -59,3 +81,5 @@ setup = function(Nvols, Nshelves, shelf_width, sfree_space){
     
 }
 
+x = setup(1000,50,36,0.1,0.05)
+View(x$books)
