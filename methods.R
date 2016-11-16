@@ -1,5 +1,6 @@
 source("setup.R")
 require(triangle)
+require(dplyr)
 
 setwd("~/Documents/CUNY/Simulation_604/Final_proj")
 
@@ -14,14 +15,42 @@ shelves = data$shelves
 # order of methods: subtractive methods first, then additive:
 # weeding, checkouts, dedups, checkins, purchases, update_shelves()
 
+
+# Utility functions
+
+# helper function that duplicates textbooks and assigns ids
+duplicate_textbooks = function(last_indx, texts){     
+    
+    texts$book_id = seq(last_indx+1, last_indx+nrow(texts))  # id and set master copys
+    texts$copym = 1
+    
+    for(i in 1:nrow(texts)){
+        n_dups = runif(1,1,3)
+        dups = data.frame(lapply(texts, function(j){ 
+            rep(j[i],n_dups) 
+        }))
+        dups$copym = 0                  # unset master, set btype, dupeof id
+        dups$btype = 't'
+        dups$dupeof = dups$book_id
+        texts = rbind(texts,dups)             # bind to purchase order
+    }
+    texts$book_id = seq(last_indx+1, last_indx+nrow(texts))      # reset book ids
+    return(texts)
+}
+
 # called to add new books by cross-referencing the shelves df
 # also updates the shelves dataframe 
 update_shelves = function(books, shelves, new_texts, new_non_texts){
+    add_textbooks(new_texts)
+    add_non_textbooks(new_books)
+    
+    # dplyr here to group by and sum new widths
     
     
 }
 
 # special logic for appending a textbook df to main library df
+# creates copies on based on runif() and sets fields for cpym and dupeof
 add_textbooks = function(new_books){
     
 }
@@ -31,10 +60,13 @@ add_non_textbooks = function(new_books){
     
 }
 
+
+
 book_widths = function(n,a,b){        # utility returns book widths between a and b for n books
     rtriangle(n, a, b, (a + b)/b )
 }
 
+# Simulation processes API
 
 # round of weeding - 2% of the collection -> DO NOT weed books that have been checked out
 weeding = function(books){
