@@ -38,35 +38,51 @@ duplicate_textbooks = function(last_indx, texts){
     return(texts)
 }
 
-# called to add new books by cross-referencing the shelves df
-# also updates the shelves dataframe 
-update_shelves = function(books, shelves, new_texts, new_non_texts){
-    add_textbooks(new_texts)
-    add_non_textbooks(new_books)
-    
-    # dplyr here to group by and sum new widths
-    
-    
-}
 
 # special logic for appending a textbook df to main library df
 # creates copies on based on runif() and sets fields for cpym and dupeof
-add_textbooks = function(new_books){
+add_textbooks = function(books,new_books){
+    
+    last_indx = tail(books$book_id,1)
+    new_books = duplicate_textbooks(last_indx,new_books)
+    # assign shelf_ids... for now uniform random but should probably change to more meaningful distribution.
+    new_books$shelf_id = round(runif(nrow(new_books),1,51))  # hard coded shelf numbers here... need to change
+    books = rbind(books,new_books)
     
 }
 
 #speical logic for appending a non-textbook df to main library df
-add_non_textbooks = function(new_books){
+add_non_textbooks = function(books,new_books){
+    
+    last_indx = tail(books$book_id,1)
+    new_books$book_id = seq(last_indx+1, last_indx+nrow(texts))
+    # assign shelf_ids... for now uniform random but should probably change to more meaningful distribution.
+    new_books$shelf_id = round(runif(nrow(new_books),1,51))  # hard coded shelf numbers here... need to change
+    books = rbind(books,new_books)
     
 }
-
-
 
 book_widths = function(n,a,b){        # utility returns book widths between a and b for n books
     rtriangle(n, a, b, (a + b)/b )
 }
 
+
+x = purchase_books('t')
+y = duplicate_textbooks(100,x)
+y$shelf_id = round(runif(nrow(y),1,50))
+
+
 # Simulation processes API
+
+# called to add new books by cross-referencing the shelves df
+# also updates the shelves dataframe 
+update_shelves = function(books, shelves){
+
+    # dplyr here to group by and sum new widths
+    
+    
+}
+
 
 # round of weeding - 2% of the collection -> DO NOT weed books that have been checked out
 weeding = function(books){
