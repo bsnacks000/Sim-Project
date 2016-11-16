@@ -1,6 +1,5 @@
 source("setup.R")
 require(triangle)
-require(dplyr)
 
 setwd("~/Documents/CUNY/Simulation_604/Final_proj")
 
@@ -48,7 +47,7 @@ add_textbooks = function(books,new_books){
     # assign shelf_ids... for now uniform random but should probably change to more meaningful distribution.
     new_books$shelf_id = round(runif(nrow(new_books),1,51))  # hard coded shelf numbers here... need to change
     books = rbind(books,new_books)
-    
+    return(books)
 }
 
 #speical logic for appending a non-textbook df to main library df
@@ -59,7 +58,7 @@ add_non_textbooks = function(books,new_books){
     # assign shelf_ids... for now uniform random but should probably change to more meaningful distribution.
     new_books$shelf_id = round(runif(nrow(new_books),1,51))  # hard coded shelf numbers here... need to change
     books = rbind(books,new_books)
-    
+    return(books)
 }
 
 book_widths = function(n,a,b){        # utility returns book widths between a and b for n books
@@ -67,20 +66,19 @@ book_widths = function(n,a,b){        # utility returns book widths between a an
 }
 
 
-x = purchase_books('t')
-y = duplicate_textbooks(100,x)
-y$shelf_id = round(runif(nrow(y),1,50))
-
-
 # Simulation processes API
 
 # called to add new books by cross-referencing the shelves df
 # also updates the shelves dataframe 
-update_shelves = function(books, shelves){
-
-    # dplyr here to group by and sum new widths
+update_shelves = function(books, shelves, shelf_width){
     
+    for (i in 1:nrow(shelves)){ 
+        new_width = sum(books[which(books$shelf_id==i & !books$chkdout),]$width) # calculate new width
+        shelves[shelves$shelf_id==i,]$in_use = new_width        # set new widths for each shelf
+    }
+    shelves$perc_used = shelves$in_use/shelf_width  # reset perc_used
     
+    return(shelves)
 }
 
 
@@ -118,7 +116,7 @@ purchase_books = function(flag){
 
 # round of de-duplicating (textbooks)
 de_dup = function(books){
-    books = books[-which(books$dedup), ] # dedup and return
+    books = books[-which(books$dedup==1), ] # dedup and return
     return(books)
 }
 
