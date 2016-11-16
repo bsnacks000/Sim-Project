@@ -5,14 +5,11 @@ setwd("~/Documents/CUNY/Simulation_604/Final_proj")
 
 # standard setup params: 1000, 50, 36, 0.1, 0.05
 set.seed(1234)
-data = setup(1000,50,36,0.1,0.05)
+data = setup(1000,50,36,0.1,0.05) # returns list, need to set to two dfs
 books = data$books
 shelves = data$shelves
 
 # define some methods for each step of the sim...
-
-# order of methods: subtractive methods first, then additive:
-# weeding, checkouts, dedups, checkins, purchases, update_shelves()
 
 
 # Utility functions
@@ -20,7 +17,7 @@ shelves = data$shelves
 # helper function that duplicates textbooks and assigns ids
 duplicate_textbooks = function(last_indx, texts){     
     
-    texts$book_id = seq(last_indx+1, last_indx+nrow(texts))  # id and set master copys
+    texts$book_id = seq(last_indx+1, last_indx+nrow(texts))  # id and set to master
     texts$copym = 1
     
     for(i in 1:nrow(texts)){
@@ -38,8 +35,50 @@ duplicate_textbooks = function(last_indx, texts){
 }
 
 
+
+book_widths = function(n,a,b){        # utility returns book widths between a and b for n books
+    rtriangle(n, a, b, (a + b)/b )
+}
+
+
+# Simulation processes API
+
+# also updates the shelves dataframe 
+update_shelves = function(books, shelves, shelf_width){
+    
+    for (i in 1:nrow(shelves)){ 
+        new_width = sum(books[which(books$shelf_id==i & !books$chkdout),]$width) # calculate new width
+        shelves[shelves$shelf_id==i,]$in_use = new_width        # set new widths for each shelf
+    }
+    shelves$perc_used = shelves$in_use/shelf_width  # reset perc_used
+    
+    return(shelves)
+}
+
+# set of purchases - 5 to 25 books (simulated book widths)
+# set of textbook purchases (simulated book widths) - 2 copies of 3 to 5 books
+# set flag to 'n', 't' for text-book or non-textbook
+# return a new dataframe to be appended to books in outer scope
+# this is a blank order... all field's build/add logic is done in the add()/update_shelves() functions
+purchase_books = function(flag){
+    
+    if (flag=='n')      # branch for text/nontext -- R throws an exception if not 'n /'t'
+        n_books = round(runif(1,5,26))
+    else if (flag=='t')
+        n_books = round(runif(1,3,6))
+    
+    width = book_widths(n_books,1,2) # calls utility function book_widths()
+    btype = rep(flag,n_books)       # sets flags
+    
+    book_id = copym = dupeof = shelf_id = chkdout = dedupe = rep(0,n_books)
+    purchase_order = data.frame(
+        book_id, btype,copym,dupeof,shelf_id,width,chkdout,dedupe
+    )
+    
+    return(purchase_order)
+} 
+
 # special logic for appending a textbook df to main library df
-# creates copies on based on runif() and sets fields for cpym and dupeof
 add_textbooks = function(books,new_books){
     
     last_indx = tail(books$book_id,1)
@@ -61,26 +100,6 @@ add_non_textbooks = function(books,new_books){
     return(books)
 }
 
-book_widths = function(n,a,b){        # utility returns book widths between a and b for n books
-    rtriangle(n, a, b, (a + b)/b )
-}
-
-
-# Simulation processes API
-
-# called to add new books by cross-referencing the shelves df
-# also updates the shelves dataframe 
-update_shelves = function(books, shelves, shelf_width){
-    
-    for (i in 1:nrow(shelves)){ 
-        new_width = sum(books[which(books$shelf_id==i & !books$chkdout),]$width) # calculate new width
-        shelves[shelves$shelf_id==i,]$in_use = new_width        # set new widths for each shelf
-    }
-    shelves$perc_used = shelves$in_use/shelf_width  # reset perc_used
-    
-    return(shelves)
-}
-
 
 # round of weeding - 2% of the collection -> DO NOT weed books that have been checked out
 weeding = function(books){
@@ -88,30 +107,6 @@ weeding = function(books){
     books = books[-sample(which(!books$chkdout), n_to_pull), ] # pull em, update and return
     return(books)
 }
-
-
-# set of purchases - 5 to 25 books (simulated book widths)
-# set of textbook purchases (simulated book widths) - 2 copies of 3 to 5 books
-# set flag to 'n', 't' for text-book or non-textbook
-# return a new dataframe to be appended to books in outer scope
-# this is a blank order... all field's build/add logic is done in the update_shelves() function
-purchase_books = function(flag){
-    
-    if (flag=='n')      # branch for text/nontext -- R throws an exception if not 'n /'t'
-        n_books = round(runif(1,5,26))
-    else if (flag=='t')
-        n_books = round(runif(1,3,6))
-    
-    width = book_widths(n_books,1,2) # calls utility function book_widths()
-    btype = rep(flag,n_books)       # sets flags
-    
-    book_id = copym = dupeof = shelf_id = chkdout = dedupe = rep(0,n_books)
-    purchase_order = data.frame(
-        book_id, btype,copym,dupeof,shelf_id,width,chkdout,dedupe
-    )
-    
-    return(purchase_order)
-} 
 
 
 # round of de-duplicating (textbooks)
