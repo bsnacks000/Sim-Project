@@ -1,0 +1,124 @@
+---
+title: "Optimizing Shelf Space through Simulation"
+author: "Daina Bouquin, John DeBlase, James Topor"
+date: "November 11, 2016"
+output: pdf_document
+geometry: margin=2.2cm
+---
+
+
+```{r, include=FALSE, echo=FALSE, warning=FALSE}
+
+library(ggplot2)
+library(dplyr)
+library(knitr)
+```
+
+# Abstract
+
+
+#### Key Words: Library Science, Shelf Shifting, Simulation, Monte Carlo Estimation
+
+# Introduction
+
+Shelf shifting is the process by which free space in a library's collection can be divided up and redistributed amongst shelves to distribute books more evenly throughout the collection. "Shifting is one of the most important steps necessary to ensure that a collection is maintained in proper order while allowing room for growth" [1]. The processing of shelf shifting can be done on either a small or large scale whenever major changes occur within a library's physical collection. However, it can also be required when regular collection growth results in overfilling of shelves. While regular "weeding" and "de-duplicating" (periodic processes that remove out-of-date and/or rarely circulated volumes or duplicate volumes from library shelves) can themselves somewhat alleviate the need for periodic shelf shifting, such processes are usually not sufficient to prevent a collection's shelves from becoming overfilled.
+
+With this context in mind, our research attempts to answer two vital questions:
+
+- How much empty space should be left on a library book shelf if shelf shifting activities are to be kept to a minimum?
+
+Implicit in these research questions is the goal of improving a library's ....
+
+## - Would be very useful to have statistics on number of hours/costs of doing shelf shifts of various magnitudes (ie, shifts in number of books, number of shelves, etc..)
+
+Then we could discuss cost/benefit analysis
+
+
+# Literature Review
+
+Our literature review focused on identifying applicable simulation strategies from the fields of library science and Monte Carlo simulation. Within the field of library science there are established methods and guidelines for shelf shifting [1] or adding shelving to libraries [2]. However, estimating the amount of space to leave empty on a shelf for purposes of minimizing shelf shifts is somewhat imprecise. For example, documents and tools exist for estimating shelf space, time, and resources needed to shift a known collection [3]. However, there appear to be no similar tools available for estimating the ideal amount of shelf space to leave open for purposes of minimizing the need for shelf shifts. In fact, we could find no relevant academic literature references on the topic. While anecdotal references to a rule-of-thumb of at least 6 inches of space being left open on each shelf are easily found on the internet, such anecdotes do not appear to be based on any type of mathematical or scientific analysis.
+
+The specific monte carlo simulation strategies we researched..
+
+#### Monte Carlo Simulation Strategies
+
+
+# Methodology
+
+As stated in the __Introduction__, our research was focused on attempting to answer the following question:
+
+- How much empty space should be left on a library book shelf if shelf shifting activities are to be kept to a minimum?
+
+To address this question a Monte Carlo simulation of a 1,000 volume library collection was developed using __R__. The simulation model relies on a variety of assumptions and constraints, each of which is described below.
+
+### Assumptions
+
+?? __Question:__ How were assumptions gathered? Are they based on actual library data??? If not, what is the basis for them??? If we don't have actual system data, we can't validate the model.
+
+- __Number of Books/Volumes__: The simulated library collection is comprised of a total of 1,000 books, with some percentage of them being textbooks.
+
+- __Book Widths__: The width of the simulated books varies between 1 and 2 inches according to a triangular approximation of a normal distribution. As such, when a book is added to the library a random sample from a triangular (1, 2) bound distribution is used to determine the width of that book.
+
+- __Shelves__: A total of fifty (50) 36 inch shelves are available for storage of the simulated library collection. Books are assigned to the simulated shelves in a serial manner at the start of the simulation until a user-specified minimum amount of free space remains on a given shelf. Once that minimum amount is achieved, shelving continues on the next available shelf.
+
+- __Books in Circulation__: We assume that 10% of the total collection has been checked out for use by various library patrons prior to the start of the simulation.
+
+- __Copies of Books__: For purposes of this simulation we assume that only textbooks may have multiple copies housed within the collection. All other types of books are assumed to be present as single copies only.
+
+- __Percentage of Books Weeded Annually__: 
+
+
+- etc..
+
+The results of 1000 trials of the R-based simulation model are aggregated to allow us to determine which set of simulation inputs yields the smallest number of shelf shifts for the given 1,000 volume collection.
+
+??? __How to we plan to validate the model??__
+
+- subjective test: SME (i.e., Daina)
+
+- build model with high face validity
+- validate model assumptions (SME again)
+
+- Potential user involved in model construction from conceptualization through implementation
+
+
+
+# Results
+
+Many anecdotes of 6" of space per shelf being a good guess found on internet...
+
+
+# Summary and Future Works
+
+The purpose of our research was to attempt to ...
+
+
+It is important to note that these conclusions apply *only* to ...
+
+
+# References
+
+[1] https://www.libraries.rutgers.edu/rul/staff/access_serv/coll_mgt/overview_of_shifting.pdf
+
+[2] https://scholarsbank.uoregon.edu/xmlui/bitstream/handle/1794/12208/Moving+Library+Collections_+UO+Libraries2.pdf?sequence=1
+
+[3] https://osc.hul.harvard.edu/liblab/projects/collection-shift-estimation-visualization-tool
+
+Paxton, Pamela, et al. "Monte Carlo experiments: Design and implementation." Structural Equation Modeling 8.2 (2001): 287-312.
+
+Homem-de-Mello, Tito, and Güzin Bayraksan. "Monte Carlo sampling-based methods for stochastic optimization." Surveys in Operations Research and Management Science 19.1 (2014): 56-85.
+
+
+__--------------------------------------------------------------------------------------------------------------------------__
+
+\newpage
+
+
+# Appendix
+
+This Appendix contains the research results, source R code, and associated relevant output from our final writeup and our simulation efforts. Additional supplemental graphics and detailed explanations of our simulation efforts are also included.
+
+__--------------------------------------------------------------------------------------------------------------------------__
+
+## Results of Simulation: (state what the parameters were)
+
