@@ -41,6 +41,8 @@ setup = function(Nvols, Nshelves, shelf_width, sfree_space,textb_masters){
             while (k <= Nvols & (k <= i + tb_copies) ) {
                 books$btype[k] <- 't'
                 books$dupeof[k] <- books$book_id[i]
+                # set width of copy to width of master
+                books$width[k] <- books$width[i]
                 k <- k + 1
             }
         } 

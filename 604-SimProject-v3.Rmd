@@ -87,6 +87,8 @@ for (i in tbm) {
     while (k <= Nvols & (k <= i + tb_copies) ) {
       books$btype[k] <- 't'
       books$dupeof[k] <- books$book_id[i]
+      # set width of copies to width of master copy
+      books$width[k] <- books$width[i]
       k <- k + 1
     }
   } # end if
