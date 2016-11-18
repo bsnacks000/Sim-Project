@@ -12,6 +12,8 @@ shelves = data$shelves
 # define some methods for each step of the sim...
 
 
+
+
 # Utility functions
 
 # helper function that duplicates textbooks and assigns ids
@@ -112,12 +114,17 @@ weeding = function(books){
 }
 
 # <<<<-- Reassess deduping methods
-# set_dup()
-# if chkdout == 1 then set dedupe = 1
 
-
-# round of de-duplicating (textbooks) - removes 
+# round of de-duplicating (textbooks) - follows logic in email. Last step in process
 de_dup = function(books){
+    #1) Dedup: we pick a random number N of textbooks to dedupe (sample from a uniform distribution??)
+    #- Find N textbooks to dedup by checking btype == 't' and copym == 1
+    #- We don't delete the master copies (copym == 1). We only delete the copies. 
+    # So using the book_id of the master copy, find copies whose dupeof value matches the book_id of the master copy.
+    #- Before removing copies of selected textbooks, check for chkdout == 1 on each copy. 
+    # If chkdout == 1 for a copy of a textbook then we can't remove it from the data frame. 
+    # Instead, we set dedup = 1 so that the copy can be removed whenever it is checked back in
+    #- For all other selected duplicates of selected textbooks (i.e., they have chkdout == 0)  simply remove them from the data frame, 
     
     # if not checked
     books = books[-which(books$dedup==1), ] # dedup and return
@@ -128,8 +135,13 @@ de_dup = function(books){
 # need to set deduping flag for textbooks that get checked out <<<<--
 check_outs = function(books){
     n_to_chkout = round(nrow(books) * .02) # number of rows to randomly checkout
-    book_ids = books[sample(which(!books$chkdout), n_to_chkout), ]$book_id
-    books$chkdout[books$book_id %in% chkdout_ids] = 1
+    book_chkout = books[sample(which(!books$chkdout), n_to_chkout), ]$book_id
+    
+    # set dedupe flag if book that gets checked out is a duplicate
+    if(any(test[test$book_id %in% book_chkout,]$dupeof > 0))
+        test[which(test$book_id %in% book_chkout),]$dedupe = 1
+    
+    books$chkdout[books$book_id %in% book_chkout] = 1
     return(books)
 }
 
@@ -138,8 +150,16 @@ check_outs = function(books){
 check_ins = function(books){
     n_to_pull = round(length(books$chkdout[books$chkdout == 1])* .2) # 20% of previously checked out books (this might need to change) 
     
-    # if dedup ==1 remove -- add this logic here
-    book_ids = books[sample(which(books$chkdout==1), n_to_pull), ]
-    books$chkdout[books$book_id %in% chkdout_ids] = 0
+    book_returns = books[sample(which(books$chkdout==1), n_to_pull), ]
+    
+    # check_in deduping logic... if flag set to 1 in batch of returned books, remove from dataframe
+    if (any(book_returns$dedupe==1)){
+        dedupe_rows = book_returns[book_returns$dedupe == 1,]
+        books = books[-which(books$book_id %in% dedupe_rows$book_id), ] 
+    }
+    
+    books$chkdout[books$book_id %in% book_returns] = 0
     return(books)
 }
+
+
