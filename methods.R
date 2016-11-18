@@ -44,6 +44,14 @@ book_widths = function(n,a,b){        # utility returns book widths between a an
 }
 
 
+get_shelf_ids = function(shelves){    # return vector of shelf ids that are available for shelving
+    shelves$shelf_id[which(!shelves$full)]
+}
+
+get_shelf_ids(shelves)
+
+shelves$full[c(1,5,7)] =1
+
 # Simulation processes API
 
 # also updates the shelves dataframe 
@@ -85,24 +93,22 @@ purchase_books = function(flag){
 
 # special logic for appending a textbook df to main library df
 # textbooks need to be shelved together
-add_textbooks = function(books,new_books){
+add_textbooks = function(books,new_books, shelves){
     
     last_indx = tail(books$book_id,1)
     new_books = duplicate_textbooks(last_indx,new_books)
-    # assign shelf_ids... for now uniform random but should probably change to more meaningful distribution.
     # need to add all books to the same shelf <<<<--
-    new_books$shelf_id = round(runif(nrow(new_books),1,51))  # hard coded shelf numbers here... need to change
+    new_books$shelf_id = sample(get_shelf_ids(shelves),nrow(new_books))
     books = rbind(books,new_books)
     return(books)
 }
 
 #speical logic for appending a non-textbook df to main library df
-add_non_textbooks = function(books,new_books){
+add_non_textbooks = function(books,new_books, shelves){
     
     last_indx = tail(books$book_id,1)
     new_books$book_id = seq(last_indx+1, last_indx+nrow(texts))
-    # assign shelf_ids... for now uniform random but should probably change to more meaningful distribution.
-    new_books$shelf_id = round(runif(nrow(new_books),1,51))  # hard coded shelf numbers here... need to change
+    new_books$shelf_id = sample(get_shelf_ids(shelves),nrow(new_books)) # assign shelf id from available shelves
     books = rbind(books,new_books)
     return(books)
 }
