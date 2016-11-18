@@ -138,8 +138,8 @@ check_outs = function(books){
     book_chkout = books[sample(which(!books$chkdout), n_to_chkout), ]$book_id
     
     # set dedupe flag if book that gets checked out is a duplicate
-    if(any(test[test$book_id %in% book_chkout,]$dupeof > 0))
-        test[which(test$book_id %in% book_chkout),]$dedupe = 1
+    if(any(books[books$book_id %in% book_chkout,]$dupeof > 0))
+        books[which(books$book_id %in% book_chkout),]$dedupe = 1
     
     books$chkdout[books$book_id %in% book_chkout] = 1
     return(books)
@@ -155,7 +155,7 @@ check_ins = function(books){
     # check_in deduping logic... if flag set to 1 in batch of returned books, remove from dataframe
     if (any(book_returns$dedupe==1)){
         dedupe_rows = book_returns[book_returns$dedupe == 1,]
-        books = books[-which(books$book_id %in% dedupe_rows$book_id), ] 
+        books[-which(books$book_id %in% dedupe_rows$book_id), ] 
     }
     
     books$chkdout[books$book_id %in% book_returns] = 0
