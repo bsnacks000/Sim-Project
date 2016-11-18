@@ -48,9 +48,9 @@ setup = function(Nvols, Nshelves, shelf_width, sfree_space,textb_masters){
         } 
     } 
 
-    # Initialize 'shelves' data frame
+    # Initialize 'shelves' data frame  --> full 0 or 1 flag for whether shelf is full
     shelves <- data.frame(shelf_id = 1:Nshelves, in_use = numeric(Nshelves), 
-                          perc_used = numeric(Nshelves), stringsAsFactors = FALSE)
+                          perc_used = numeric(Nshelves), full=numeric(Nshelves), stringsAsFactors = FALSE)
     
     k <- 1
     # sum book widths to ensure they don't exceed (max shelf width - free_space)

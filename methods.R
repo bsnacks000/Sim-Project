@@ -1,7 +1,7 @@
+setwd("~/Documents/CUNY/Simulation_604/Final_proj")
+
 source("setup.R")
 require(triangle)
-
-setwd("~/Documents/CUNY/Simulation_604/Final_proj")
 
 # standard setup params: 1000, 50, 36, 0.1, 0.05         boost free space
 set.seed(1234)
@@ -11,7 +11,8 @@ shelves = data$shelves
 
 # define some methods for each step of the sim...
 
-
+# Sim Method order as outlined in v3.Rmd
+# Weeding, Purchase (t and n) and shelve, check in, check out, dedupe
 
 
 # Utility functions
