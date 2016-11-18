@@ -55,7 +55,8 @@ update_shelves = function(books, shelves, shelf_width){
         shelves[shelves$shelf_id==i,]$in_use = new_width        # set new widths for each shelf
     }
     shelves$perc_used = shelves$in_use/shelf_width  # reset perc_used
-    
+    shelves$full[which(shelves$perc_used > 0.95)] = 1  # set flag at full greater than 95%
+
     return(shelves)
 }
 
