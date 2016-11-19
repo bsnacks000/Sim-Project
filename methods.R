@@ -38,24 +38,17 @@ duplicate_textbooks = function(last_indx, texts){
 }
 
 
-
 book_widths = function(n,a,b){        # utility returns book widths between a and b for n books
     rtriangle(n, a, b, (a + b)/b )
 }
-
 
 get_shelf_ids = function(shelves){    # return vector of shelf ids that are available for shelving
     shelves$shelf_id[which(!shelves$full)]
 }
 
-get_shelf_ids(shelves)
-
-shelves$full[c(1,5,7)] =1
-
 # Simulation processes API
 
-# also updates the shelves dataframe 
-# 95% threshold for shelve full... then flag the shelf might need to add a column <<<<--
+# updates shelves dataframe at end of each round 
 update_shelves = function(books, shelves, shelf_width){
     
     for (i in 1:nrow(shelves)){ 
@@ -96,12 +89,13 @@ purchase_books = function(flag){
 add_textbooks = function(books,new_books, shelves){
     
     last_indx = tail(books$book_id,1)
+    new_books$shelf_id = sample(get_shelf_ids(shelves),nrow(new_books)) # shelf ids assigned before duplication
     new_books = duplicate_textbooks(last_indx,new_books)
-    # need to add all books to the same shelf <<<<--
-    new_books$shelf_id = sample(get_shelf_ids(shelves),nrow(new_books))
     books = rbind(books,new_books)
     return(books)
 }
+
+
 
 #speical logic for appending a non-textbook df to main library df
 add_non_textbooks = function(books,new_books, shelves){
