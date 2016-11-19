@@ -115,21 +115,19 @@ weeding = function(books){
     return(books)
 }
 
-# <<<<-- Reassess deduping methods
 
 # round of de-duplicating (textbooks) - follows logic in email. Last step in process
 de_dup = function(books){
-    #1) Dedup: we pick a random number N of textbooks to dedupe (sample from a uniform distribution??)
-    #- Find N textbooks to dedup by checking btype == 't' and copym == 1
-    #- We don't delete the master copies (copym == 1). We only delete the copies. 
-    # So using the book_id of the master copy, find copies whose dupeof value matches the book_id of the master copy.
-    #- Before removing copies of selected textbooks, check for chkdout == 1 on each copy. 
-    # If chkdout == 1 for a copy of a textbook then we can't remove it from the data frame. 
-    # Instead, we set dedup = 1 so that the copy can be removed whenever it is checked back in
-    #- For all other selected duplicates of selected textbooks (i.e., they have chkdout == 0)  simply remove them from the data frame, 
     
-    # if not checked
-    books = books[-which(books$dedup==1), ] # dedup and return
+    # n number of textbooks to dedupe
+    n_dedup = round(runif(1,1,5))
+    # get book ids for the master copies to be deduped 
+    master_ids = books[sample(which(books$copym==1),n_dedup),]$book_id
+    
+    # set dedupe flags for any duplicates with chkdout=1; pull the ones with chkdout=0
+    books[which(books$dupeof %in% master_ids & books$chkdout==1), ]$dedupe = 1
+    books[-which(books$dupeof %in% master_ids & !books$chkdout), ]
+    
     return(books)
 }
 
@@ -138,10 +136,6 @@ de_dup = function(books){
 check_outs = function(books){
     n_to_chkout = round(nrow(books) * .02) # number of rows to randomly checkout
     book_chkout = books[sample(which(!books$chkdout), n_to_chkout), ]$book_id
-    
-    # set dedupe flag if book that gets checked out is a duplicate
-    if(any(books[books$book_id %in% book_chkout,]$dupeof > 0))
-        books[which(books$book_id %in% book_chkout),]$dedupe = 1
     
     books$chkdout[books$book_id %in% book_chkout] = 1
     return(books)
