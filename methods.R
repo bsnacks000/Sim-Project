@@ -1,18 +1,7 @@
 setwd("~/Documents/CUNY/Simulation_604/Final_proj")
 
-source("setup.R")
-require(triangle)
-
-# standard setup params: 1000, 50, 36, 0.1, 0.05         boost free space
-set.seed(1234)
-data = setup(1000,50,36,0.1,0.05) # returns list, need to set to two dfs
-books = data$books
-shelves = data$shelves
 
 # define some methods for each step of the sim...
-
-# Sim Method order as outlined in v3.Rmd
-# Weeding, Purchase (t and n) and shelve, check in, check out, dedupe
 
 
 # Utility functions
@@ -66,12 +55,12 @@ update_shelves = function(books, shelves, shelf_width){
 # set flag to 'n', 't' for text-book or non-textbook
 # return a new dataframe to be appended to books in outer scope
 # this is a blank order... all field's build/add logic is done in the add()/update_shelves() functions
-purchase_books = function(flag){
+purchase_books = function(flag, min=5, max=26){
     
     if (flag=='n')      # branch for text/nontext -- R throws an exception if not 'n /'t'
-        n_books = round(runif(1,5,26))
+        n_books = round(runif(1,min,max))
     else if (flag=='t')
-        n_books = round(runif(1,3,6))
+        n_books = round(runif(1,min,max))
     
     width = book_widths(n_books,1,2) # calls utility function book_widths()
     btype = rep(flag,n_books)       # sets flags
@@ -101,7 +90,7 @@ add_textbooks = function(books,new_books, shelves){
 add_non_textbooks = function(books,new_books, shelves){
     
     last_indx = tail(books$book_id,1)
-    new_books$book_id = seq(last_indx+1, last_indx+nrow(texts))
+    new_books$book_id = seq(last_indx+1, last_indx+nrow(new_books))
     new_books$shelf_id = sample(get_shelf_ids(shelves),nrow(new_books)) # assign shelf id from available shelves
     books = rbind(books,new_books)
     return(books)
@@ -123,10 +112,12 @@ de_dup = function(books){
     n_dedup = round(runif(1,1,5))
     # get book ids for the master copies to be deduped 
     master_ids = books[sample(which(books$copym==1),n_dedup),]$book_id
-    
+   
     # set dedupe flags for any duplicates with chkdout=1; pull the ones with chkdout=0
-    books[which(books$dupeof %in% master_ids & books$chkdout==1), ]$dedupe = 1
-    books[-which(books$dupeof %in% master_ids & !books$chkdout), ]
+    if(length(books[which(books$dupeof %in% master_ids & books$chkdout==1), ]$dedupe > 0))
+        books[which(books$dupeof %in% master_ids & books$chkdout==1), ]$dedupe = 1
+    
+    books = books[-which(books$dupeof %in% master_ids & !books$chkdout), ]
     
     return(books)
 }
@@ -142,7 +133,7 @@ check_outs = function(books){
 }
 
 
-# 2% of the collection gets checked in (not the same as the check outs)
+# 20% of the collection gets checked in (not the same as the check outs)
 check_ins = function(books){
     n_to_pull = round(length(books$chkdout[books$chkdout == 1])* .2) # 20% of previously checked out books (this might need to change) 
     
@@ -151,7 +142,7 @@ check_ins = function(books){
     # check_in deduping logic... if flag set to 1 in batch of returned books, remove from dataframe
     if (any(book_returns$dedupe==1)){
         dedupe_rows = book_returns[book_returns$dedupe == 1,]
-        books[-which(books$book_id %in% dedupe_rows$book_id), ] 
+        books = books[-which(books$book_id %in% dedupe_rows$book_id), ] 
     }
     
     books$chkdout[books$book_id %in% book_returns] = 0
