@@ -1,8 +1,3 @@
-setwd("~/Documents/CUNY/Simulation_604/Final_proj")
-
-
-# define some methods for each step of the sim...
-
 
 # Utility functions
 
