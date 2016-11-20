@@ -65,8 +65,7 @@ setup = function(Nvols, Nshelves, shelf_width, sfree_space,textb_masters){
         } 
     } 
     
-    shelves$perc_used = shelves$in_use/shelf_width  # sets perc_used
-    
+
     # select 10% of book_id values to set to 'checked out' status
     c_out <- sample(books$book_id, (Nvols * .10), replace = FALSE)
     
@@ -78,6 +77,8 @@ setup = function(Nvols, Nshelves, shelf_width, sfree_space,textb_masters){
         # subtract width of chkdout book from space in use on its assigned shelf
         shelves$in_use[books$shelf_id[i]] <- shelves$in_use[books$shelf_id[i]] - books$width[i]
     }
+    shelves$perc_used = shelves$in_use/shelf_width  # sets perc_used
+    
     
     return(list(books=books,shelves=shelves)) # return books shelves
     

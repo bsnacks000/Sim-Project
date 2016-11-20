@@ -16,15 +16,46 @@ shelves = data$shelves
 # Sim Method order as outlined in v3.Rmd
 # Weeding, Purchase (t and n) and shelve, check in, check out, dedupe
 
-books2 = weeding(books)
+## RUN THIS BLOCK MANUALLY TO TEST##########
+books = weeding(books,0.02)
 new_texts = purchase_books('t',3,6)
 new_ntexts = purchase_books('n',5,26)
-books2 = add_non_textbooks(books2,new_ntexts,shelves)
-books2 = add_textbooks(books2,new_texts,shelves)
-books2 = check_ins(books2)
-books2 = check_outs(books2)
-books2 = de_dup(books2)
-shelves2= update_shelves(books2,shelves,36)
+books = add_non_textbooks(books,new_ntexts,shelves)
+books = add_textbooks(books,new_texts,shelves)
+books = check_ins(books,0.2)
+books = check_outs(books,0.02)
+books = de_dup(books)
+shelves= update_shelves(books,shelves,36)
+#########################################
+
+data2 = setup(30,50,36,0.3,0.5)
+books = data2$books
+
+books$chkdout[c(11,13,26,27)] = 1
+#books$dedupe[c(11,13,26,27)] = 1
+
+
+# n number of textbooks to dedupe
+n_dedup = round(runif(1,1,5))
+print(n_dedup)
+# get book ids for the master copies to be deduped 
+master_ids = books[sample(which(books$copym==1),n_dedup),]$book_id
+print(master_ids)
+# set dedupe flags for any duplicates with chkdout=1; pull the ones with chkdout=0
+books[which(books$dupeof %in% master_ids & books$chkdout==1), ]
+books[which(books$dupeof %in% master_ids & books$chkdout==0), ]
+
+if(length(books[which(books$dupeof %in% master_ids & books$chkdout==1), ]$dedupe > 0))
+    books[which(books$dupeof %in% master_ids & books$chkdout==1), ]$dedupe = 1
+
+if(nrow(books[which(books$dupeof %in% master_ids & books$chkdout==0), ])!=0)
+    books = books[-which(books$dupeof %in% master_ids & !books$chkdout), ]
+
+
+
+
+
+
 
 
 

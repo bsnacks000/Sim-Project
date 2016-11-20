@@ -46,7 +46,9 @@ update_shelves = function(books, shelves, shelf_width){
     }
     shelves$perc_used = shelves$in_use/shelf_width  # reset perc_used
     shelves$full[which(shelves$perc_used > 0.95)] = 1  # set flag at full greater than 95%
-
+    # if shelf was full and books are removed(deduping or checkout) set back to zero
+    shelves$full[which(shelves$perc_used <= 0.95 & shelves$full == 1)] = 0
+    
     return(shelves)
 }
 
@@ -98,8 +100,8 @@ add_non_textbooks = function(books,new_books, shelves){
 
 
 # round of weeding - 2% of the collection -> DO NOT weed books that have been checked out
-weeding = function(books){
-    n_to_pull = round(nrow(books) * .02) # number of rows to randomly pull
+weeding = function(books, perc=0.02){
+    n_to_pull = round(nrow(books) * perc) # number of rows to randomly pull
     books = books[-sample(which(!books$chkdout), n_to_pull), ] # pull em, update and return
     return(books)
 }
@@ -117,15 +119,17 @@ de_dup = function(books){
     if(length(books[which(books$dupeof %in% master_ids & books$chkdout==1), ]$dedupe > 0))
         books[which(books$dupeof %in% master_ids & books$chkdout==1), ]$dedupe = 1
     
-    books = books[-which(books$dupeof %in% master_ids & !books$chkdout), ]
+    # if there is a subset of duplicates that are not checked out remove them 
+    if(nrow(books[which(books$dupeof %in% master_ids & books$chkdout==0), ])!=0)
+        books = books[-which(books$dupeof %in% master_ids & !books$chkdout), ]
     
     return(books)
 }
 
 # 2% of the collection gets newly checked out -> check flag
 # need to set deduping flag for textbooks that get checked out <<<<--
-check_outs = function(books){
-    n_to_chkout = round(nrow(books) * .02) # number of rows to randomly checkout
+check_outs = function(books, perc=0.02){
+    n_to_chkout = round(nrow(books) * perc) # number of rows to randomly checkout
     book_chkout = books[sample(which(!books$chkdout), n_to_chkout), ]$book_id
     
     books$chkdout[books$book_id %in% book_chkout] = 1
@@ -134,8 +138,8 @@ check_outs = function(books){
 
 
 # 20% of the collection gets checked in (not the same as the check outs)
-check_ins = function(books){
-    n_to_pull = round(length(books$chkdout[books$chkdout == 1])* .2) # 20% of previously checked out books (this might need to change) 
+check_ins = function(books, perc=0.2){
+    n_to_pull = round(length(books$chkdout[books$chkdout == 1])* perc) # 20% of previously checked out books (this might need to change) 
     
     book_returns = books[sample(which(books$chkdout==1), n_to_pull), ]
     
@@ -145,7 +149,7 @@ check_ins = function(books){
         books = books[-which(books$book_id %in% dedupe_rows$book_id), ] 
     }
     
-    books$chkdout[books$book_id %in% book_returns] = 0
+    books$chkdout[books$book_id %in% book_returns$book_id] = 0
     return(books)
 }
 
