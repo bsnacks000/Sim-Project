@@ -98,6 +98,8 @@ add_non_textbooks = function(books,new_books, shelves){
 weeding = function(books, perc=0.02){
     n_to_pull = round(nrow(books) * perc) # number of rows to randomly pull
     books = books[-sample(which(!books$chkdout), n_to_pull), ] # pull em, update and return
+    # renumber indices of rows after removal of books
+    rownames(books) <- 1:nrow(books)
     return(books)
 }
 
@@ -117,6 +119,9 @@ de_dup = function(books){
     # if there is a subset of duplicates that are not checked out remove them 
     if(nrow(books[which(books$dupeof %in% master_ids & books$chkdout==0), ])!=0)
         books = books[-which(books$dupeof %in% master_ids & !books$chkdout), ]
+    
+    # renumber indices of rows after removal of books
+    rownames(books) <- 1:nrow(books)
     
     return(books)
 }
@@ -142,6 +147,8 @@ check_ins = function(books, perc=0.2){
     if (any(book_returns$dedupe==1)){
         dedupe_rows = book_returns[book_returns$dedupe == 1,]
         books = books[-which(books$book_id %in% dedupe_rows$book_id), ] 
+        # renumber indices of rows after removal of books
+        rownames(books) <- 1:nrow(books)
     }
     
     books$chkdout[books$book_id %in% book_returns$book_id] = 0
