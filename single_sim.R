@@ -2,7 +2,7 @@
 source("setup.R")   # these need to be in the same folder...
 source("methods.R")
 
-single_sim = function(nvols=1000,nshelves=50,shelf_width=36,sfree_space=0.1,textb_masters=0.05,reshelf_thresh=5,seed_val=NULL){
+single_sim = function(nvols=1000,nshelves=50,shelf_width=36,sfree_space=0.17,textb_masters=0.05,reshelf_thresh=5,seed_val=NULL){
     
     set.seed(seed_val)   # specify seed
     data = setup(nvols,nshelves,shelf_width,sfree_space,textb_masters) # returns list, need to set to two dfs
