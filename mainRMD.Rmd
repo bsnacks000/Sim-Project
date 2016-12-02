@@ -1,3 +1,11 @@
+---
+title: "604 Final Project"
+author: "James Topor"
+date: "December 2, 2016"
+output: pdf_document
+---
+
+```{r}
 library(knitr)
 
 setwd("c:/users/hammer/Documents/github/Sim_Project")
@@ -41,3 +49,6 @@ for (k in free_inches) {
 }
 
 kable(res_master, caption = "Summary of All Simulation Runs")
+
+
+```

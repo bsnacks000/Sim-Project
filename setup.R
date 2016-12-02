@@ -1,12 +1,13 @@
 # can import this function using source("setup.R")
 # returns list of 2 dataframes: books and shelves
 
-setup = function(Nvols, Nshelves, shelf_width, sfree_space,textb_masters){
+setup = function(Nvols, Nshelves, shelf_width, sfree_space, textb_masters){
     
     library(triangle)
     
-    # set max shelf space consumed by books
-    max_shelved <- shelf_width - (shelf_width * sfree_space)
+    # set max shelf space allowed to be consumed by books at start of simulation
+    # sfree_space represents the total amount of free space in INCHES
+    max_shelved <- shelf_width - sfree_space
 
     # Initialize 'books' data frame
     books <- data.frame(book_id = 1:Nvols, btype = character(Nvols), copym = numeric(Nvols), 
@@ -65,9 +66,13 @@ setup = function(Nvols, Nshelves, shelf_width, sfree_space,textb_masters){
         } 
     } 
     
+    ###########################
+    # remove all books that were not able to be shelved
+    books <- books[which(books$shelf_id != 0),]
 
+    
     # select 10% of book_id values to set to 'checked out' status
-    c_out <- sample(books$book_id, (Nvols * .10), replace = FALSE)
+    c_out <- sample(books$book_id, (nrow(books) * .10), replace = FALSE)
     
     # For each book_id in c_out, set chkdout = 1 and subtract
     # book width from shelf space used for appropriate shelf_id
