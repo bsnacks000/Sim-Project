@@ -11,6 +11,7 @@ single_sim = function(nvols=1000, nshelves=50, shelf_width=36, sfree_space=3,
     #init books and shelves
     books = data$books
     shelves = data$shelves
+    delbks <- data$delbks
     
     counter = 0
     full_count = 0
@@ -55,6 +56,6 @@ single_sim = function(nvols=1000, nshelves=50, shelf_width=36, sfree_space=3,
     rm(data, books, shelves)
     
     # The counter value is number of rounds  
-    return(counter)
-    
+    # return(counter)
+    return(list(iters = counter, delbks = delbks))
 }

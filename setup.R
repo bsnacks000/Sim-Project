@@ -69,8 +69,10 @@ setup = function(Nvols, Nshelves, shelf_width, sfree_space, textb_masters){
     ###########################
     # remove all books that were not able to be shelved
     books <- books[which(books$shelf_id != 0),]
-
     
+    # calculate number of deleted books
+    delbks <- Nvols - nrow(books)
+
     # select 10% of book_id values to set to 'checked out' status
     c_out <- sample(books$book_id, (nrow(books) * .10), replace = FALSE)
     
@@ -85,7 +87,7 @@ setup = function(Nvols, Nshelves, shelf_width, sfree_space, textb_masters){
     shelves$perc_used = shelves$in_use/shelf_width  # sets perc_used
     
     
-    return(list(books=books,shelves=shelves)) # return books shelves
+    return(list(books=books, shelves=shelves, delbks = delbks)) # return books shelves
     
 }
 
