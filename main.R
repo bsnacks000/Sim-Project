@@ -20,17 +20,28 @@ sim_results = numeric(100)
 # and collect results
 df_ind <- 1
 
+# create a data frame to store all simulation results for use outside of the for loop
+bxp_df <- data.frame(matrix(, nrow=100, ncol=0))
+
 for (k in free_inches) {
   # run 100 iterations for each free shelf space value
   for(i in 1:100){
-    sim_results[i] <- single_sim(sfree_space = k)   
+    sim_results[i] <- single_sim(sfree_space = k)
   }
+  
+  # add col containing sim results to boxplot dataframe
+  bxp_df <- cbind(bxp_df, sim_results)
+  # set the name of the new col to the number of inches of free space
+  colnames(bxp_df)[colnames(bxp_df) == 'sim_results'] <- toString(k)
   
   # display results for free shelf space = k
   print(sprintf("Free Space = %1.1f inches", k))
   print(summary(sim_results))
   xl <- sprintf("Free Space = %1.1f inches", k)
   hist(sim_results, breaks = 20, col = 'yellow', xlab = xl)
+  
+  # create a boxplot of the results for free shelf space = k
+  # boxplot(sim_results, main = xl, col = 'yellow' )
   
   # store results in master results data frame
   res_master$mu[df_ind] <- mean(sim_results)
