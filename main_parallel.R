@@ -27,7 +27,7 @@ registerDoParallel(cl)
 for (k in free_inches) {
     # run 100 iterations for each free shelf space value
     result = foreach(icount(100))  %dopar% {
-        single_sim(sfree_space = 4.5)
+        single_sim(sfree_space = k)
     }
     
     for (i in 1:100){
