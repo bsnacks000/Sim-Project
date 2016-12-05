@@ -8,7 +8,7 @@ output: pdf_document
 ```{r}
 library(knitr)
 
-setwd("c:/users/hammer/Documents/github/Sim_Project")
+#setwd("c:/users/hammer/Documents/github/Sim_Project")
 
 source("single_sim.R")  # import single_sim... 
 
@@ -70,6 +70,8 @@ for (k in free_inches) {
   
   df_ind <- df_ind + 1
 }
+
+boxplot(bxp_df)
 
 kable(res_master, caption = "Summary of All Simulation Runs")
 
