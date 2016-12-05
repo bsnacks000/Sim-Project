@@ -90,7 +90,7 @@ To address this question a Monte Carlo simulation of a small 1,000 volume librar
 
 ### Running the Simulation
 
-The R-based simulation allows us to evaluate the effects of a variety of initial free space values. Specifically, the R code implements and aggregates the results of 100 simulations for each of the initial free shelf space values of 3, 3.5, 4, 4.5, 5, 5.5, and 6 inches. A single run of the simulation is deemed to be complete whenever at least 5 library shelves become "full" according to the __Shelf Filling__ description given above. The results of the simulations for the various initial free shelf space values are then tabulated and compared to allow us to determine which of the initial free shelf space value yields allows for the smallest average number of shelf shifts for the given 1,000 volume collection while sending as few books as possible to off-site storage.
+The R-based simulation allows us to evaluate the effects of a variety of initial free shelf space values. Specifically, the R code implements and aggregates the results of 100 simulations for each of the initial free shelf space values of 3, 3.5, 4, 4.5, 5, 5.5, and 6 inches. A single run of the simulation is deemed to be complete whenever at least 5 library shelves become "full" according to the __Shelf Filling__ description given above. The results of the simulations for the various initial free shelf space values are then tabulated and compared to allow us to determine which of the initial free shelf space value yields allows for the smallest average number of shelf shifts for the given 1,000 volume collection while sending as few books as possible to off-site storage.
 
 __Overview of Simulation Logic__:    
 Simple flow chart of simulation for clarity?   
