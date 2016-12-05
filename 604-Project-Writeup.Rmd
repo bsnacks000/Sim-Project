@@ -1,7 +1,7 @@
 ---
-title: "Optimizing Shelf Space through Simulation"
+title: "Optimized Decision Making About Library Shelf Space Through Simulation"
 author: "Daina Bouquin, John DeBlase, James Topor"
-date: "November 11, 2016"
+date: "December 5, 2016"
 output: pdf_document
 geometry: margin=2.2cm
 ---
@@ -16,98 +16,116 @@ library(knitr)
 
 # Abstract
 
+Intro/Background sentence. Approach sentence. Findings sentence. Conclusions sentence.
 
 #### Key Words: Library Science, Shelf Shifting, Simulation, Monte Carlo Estimation
 
 # Introduction
 
-Shelf shifting is the process by which free space in a library's collection can be divided up and redistributed amongst shelves to distribute books more evenly throughout the collection. "Shifting is one of the most important steps necessary to ensure that a collection is maintained in proper order while allowing room for growth" [1]. The processing of shelf shifting can be done on either a small or large scale whenever major changes occur within a library's physical collection. However, it can also be required when regular collection growth results in overfilling of shelves. While regular "weeding" and "de-duplicating" (periodic processes that remove out-of-date and/or rarely circulated volumes or duplicate volumes from library shelves) can themselves somewhat alleviate the need for periodic shelf shifting, such processes are usually not sufficient to prevent a collection's shelves from becoming overfilled.
+Shelf shifting is the process by which free space in a library's collection can be divided up and redistributed amongst shelves to distribute books more evenly throughout the collection. "Shifting is one of the most important steps necessary to ensure that a collection is maintained in proper order while allowing room for growth" [1]. The processing of shelf shifting can be done on either a small or large scale whenever major changes occur within a library's physical collection. However, it can also be required when regular collection growth results in overfilling of shelves. While regular "weeding" and "de-duplicating" (periodic processes that remove out-of-date and/or rarely circulated volumes or duplicate volumes from library shelves) can themselves somewhat alleviate the need for periodic shelf shifting, such processes are usually not sufficient to prevent a collection's shelves from becoming overfilled. As a result, many libraries have adopted off-site storage models wherein a portion of the physical collection is stored remotely and is accessed via currier or other delivery service. The cost of off-site storage though can be substantial, as is the cost of recalling material back to the main library from the remote storage facility. Similarly, shelf-shifting can be a time consuming and expensive process when shelves are left to fill over long periods of time. And while there has in the recent past been a notable shift toward electronic book collecting, physical collections are still maintained. It is therefore in the library's best interest to store as little offsite as possible and to simultanerously execute shelf shifting activities as little as possible.
 
-With this context in mind, our research attempts to answer two vital questions:
+With this context in mind, our research attempts to answer the question:
 
-- How much empty space should be left on a library book shelf if shelf shifting activities are to be kept to a minimum?
+- What is the ideal amount of space to leave empty on a book shelf to minimize the need to shift and to accomodate the most books?
 
-Implicit in these research questions is the goal of improving a library's ....
+Implicit in this research question is the goal of limiting the amount of time needed to maintain the library's physical collection. Also implicit in this question is the assumption that the library in question has access to an off-site storage option. Granular metrics for libraries of this kind (typically large academic libraries) are not publically available, nor are metrics for their individual collections generalizable; different collections in different domains and at different institutions are subject to very individualized collection development policies that impact the basic metrics one would use to simulate various processes associated with a library's physical collections. For these reasons, the herein described simulation is to be treated as a simple case study or "proof-of-concept" based on a simulated small collection from a single library that meets these criteria. The resulting code however could be augmented and built upon to facilitate decision making at other libraries.
 
-## - Would be very useful to have statistics on number of hours/costs of doing shelf shifts of various magnitudes (ie, shifts in number of books, number of shelves, etc..)
+# Background 
 
-Then we could discuss cost/benefit analysis
+The library to be used as a case example and from which metrics are drawn to create the initial set of simulation assumptions is the Wolbach Library at the Harvard-Smithsonian Center for Astrophysics in Cambridge, MA [1]. Metrics are gathered from Wolbach's Head Librarian who has access to Wolbach's in-development collection development and weeding policies, as well as circulation metrics associated with the physical collection.
 
+The following are facts are illustrative of Wolbach's practices and the benefits of using simulation to support decision making when it comes to the maintance of a physical library collection:
+
+- Shifting time: It takes one Wolbach staff person shifting at 10.87 inches of books per minute for 7 hours to shift a section of the Wolbach Collection. Due to the physical strain of this work, this sort of shift is typically split over 2 days. One can assume all staff members make at least $17/hour and that this timeframe does not take into account time needed for planning the shift. If it is necessary to shift many sections, this adds to the time significantly. Large shifts can take many weeks and get costly quickly. 
+
+- Storage off site: First time accession fees apply to all individual items stored off site. For instance, if Wolbach sent off site 108 items, a $1.26 charge per item would be applied resulting in a $136.08 charge. Each time an item is recalled to Wolbach, a currier is used with recall fees totalling $3.27 per item. For this purpose, complex decisions are made regarding what materials to send off-site, the most substantial deciding factor though is library space. Turn around time for the delivery of material is typically one to two business days, but if material is needed immediately, "emergency" recalls can be made a price of $182 per trip. It is therefore adventageous to limit the amount of material stored off site when possible. For FY17 Wolbach budgeted $31.5K for off-site storage. There are currently over 10.7 million items at the Depository used by Wolbach and Harvard is exanding its off-site storage to accomodate even more material.
 
 # Literature Review
 
-Our literature review focused on identifying applicable simulation strategies from the fields of library science and Monte Carlo simulation. Within the field of library science there are established methods and guidelines for shelf shifting [1] or adding shelving to libraries [2]. However, estimating the amount of space to leave empty on a shelf for purposes of minimizing shelf shifts is somewhat imprecise. For example, documents and tools exist for estimating shelf space, time, and resources needed to shift a known collection [3]. However, there appear to be no similar tools available for estimating the ideal amount of shelf space to leave open for purposes of minimizing the need for shelf shifts. In fact, we could find no relevant academic literature references on the topic. While anecdotal references to a rule-of-thumb of at least 6 inches of space being left open on each shelf are easily found on the internet, such anecdotes do not appear to be based on any type of mathematical or scientific analysis.
+Our literature review focused on identifying applicable simulation strategies from the fields of library science and Monte Carlo simulation. Within the field of library science there are established methods and guidelines for shelf shifting [2] or adding shelving to libraries [3] and even for completely rearranging library spaces to accomodate more books [4]. However, estimating the amount of space to leave empty on a shelf for purposes of minimizing shelf shifts is somewhat imprecise. For example, documents and tools exist for estimating shelf space, time, and resources needed to shift a known collection [5] and there have been methods developed to inform decisions about shifting collections off site for the re-organization of a library [6]. In fact there are even comercial products to help libraries with large moves to new buildings, expanding existing shelving, moving to new locations, abd shifting books to more evenly distribute space in current shelving [7]. However, there appear to be no specific tools available for estimating the ideal amount of shelf space to leave open for purposes of minimizing the need for shelf shifts and maximizing the number of volumes kept on site. There seem to be no known applications of simulation for these puposes either. Many libraries develop their own ad hoc approaches to estimating collection growth rates (these rates are only concrete for periodical collections) or fall back on rules-of-thumb. For instance, there are numerous anecdotal references online to the general idea that one should leave at least 6 inches of space open on each shelf, but anecdotes do not appear to be based on any type of mathematical or scientific analysis; it is instead common practice to leave space for at least one hand at each end of a shelf when shifting.
 
-The specific monte carlo simulation strategies we researched..
+The specific monte carlo simulation strategies...
 
-#### Monte Carlo Simulation Strategies
-
+insert articles [8 and 9] about monte carlo -- do you think it's appropriate to site the book or just articles? We need a few more I think.
 
 # Methodology
 
 As stated in the __Introduction__, our research was focused on attempting to answer the following question:
 
-- How much empty space should be left on a library book shelf if shelf shifting activities are to be kept to a minimum?
+- What is the ideal amount of space to leave empty on a book shelf to minimize the need to shift and to accomodate the most books?
 
-To address this question a Monte Carlo simulation of a 1,000 volume library collection was developed using __R__. The simulation model relies on a variety of assumptions and constraints, each of which is described below.
+To address this question a Monte Carlo simulation of a small 1,000 volume library collection was developed using __R__. The simulation model relies on a variety of assumptions and constraints, each of which is described below. The assumptions and constraints are based on generalized metrics gathered about Wolbach Library's physical collection, community, and practices. For the purposes of building an easy to adapt proof-of-concept tool, the collection is substantially simplified.
 
 ### Assumptions
+All assumptions can be adjusted to accomodate differing parameters given in different library contexts.
 
-?? __Question:__ How were assumptions gathered? Are they based on actual library data??? If not, what is the basis for them??? If we don't have actual system data, we can't validate the model.
+- __Number of Books/Volumes__: The simulated library collection is comprised of a total of 1,000 books. This represents a single, relatively small, collection within the broader library collection.
 
-- __Number of Books/Volumes__: The simulated library collection is comprised of a total of 1,000 books, with some percentage of them being textbooks.
+- __Types of Books/Volumes__: There are two types of books in the simulation: Textbooks and non-textbooks. The number of textbooks is simulated in the collection by randomly sampling a uniform distribution bounded by (1, 3). This represents the number of new physical textbooks typically purchased for the small number of undergraduate Astronomy courses taught each semester at the Harvard-Smithsonian Center for Astrophysics as it is typical of a given subsection of the library. 
 
-- __Book Widths__: The width of the simulated books varies between 1 and 2 inches according to a triangular approximation of a normal distribution. As such, when a book is added to the library a random sample from a triangular (1, 2) bound distribution is used to determine the width of that book.
+- __Book Widths__: The width of the simulated books varies between 1 and 2 inches according to a triangular approximation of a normal distribution. As such, when a book is added to the library a random sample from a triangular (1, 2) bound distribution is used to determine the width of that book. This distribution is based on architectual graphics standards used in library space design [10]. By defaulting to these standards the simulated library collection does not need to distinguish between paperback and hardcover volumes. This distribution could also be adjusted based on a random sampling of volumes in any given collection.
 
-- __Shelves__: A total of fifty (50) 36 inch shelves are available for storage of the simulated library collection. Books are assigned to the simulated shelves in a serial manner at the start of the simulation until a user-specified minimum amount of free space remains on a given shelf. Once that minimum amount is achieved, shelving continues on the next available shelf.
+- __Shelves__: A total of fifty (50) 36 inch shelves are available for storage of the simulated library collection. Books are assigned to the simulated shelves in a serial manner at the start of the simulation until a user-specified minimum amount of free space remains on a given shelf. Once that minimum amount is achieved, shelving continues on the next available shelf. If volumes do not fit, those are the books that sent "off-site" for the purposes of the simulation. This total number of shelves (50) is the amount of shelving typically designated for a small subcollection in Wolbach Library. Shelving dimensions and totals could also be adjusted to accomodate a significantly different library collection.
 
-- __Books in Circulation__: We assume that 10% of the total collection has been checked out for use by various library patrons prior to the start of the simulation.
+- __Books in Circulation__: We assume that 10% of the total collection has been checked out for use by various library patrons prior to the start of the simulation. This value a simplified assumption based on averages of monthly "COUNTER" statistics pulled from Harvard's Cognos reporting tool for Wolbach's non-periodical collection and could be modified for any specific collection's circulation rate. Collection circulation rates tend to be seasonal in nature and are not typically tracked at the level of a subcollection.
 
-- __Copies of Books__: For purposes of this simulation we assume that only textbooks may have multiple copies housed within the collection. All other types of books are assumed to be present as single copies only.
+- __Copies of Books__: For purposes of this simulation we assume that only textbooks may have multiple copies housed within the collection. All other types of books are assumed to be present as single copies only. Textbooks and their copies are all stored on the shelves prior to circulation activities (check-out/check-in), weeding, and eventual "de-duplication" (removal of duplicate copies of older textbooks). Whenever a new "master" copy of a textbook is created, a number of copies of that textbook are created as well. The exact number created is determined via a random sample of a uniform distribution bounded by (1, 3). For example, if a '2' is generated, 2 copies of the newly created master copy will be instantiated in the collection. 
 
-- __Percentage of Books Weeded Annually__: 
+- __Percentage of Books Weeded and Deduplicated__: Wolbach Library's general collection development policy is in the process of being reassessed, however, a general plan is in place to begin executing a regular weeding policy. The simulation reflects that policy in that 2% of the simulated collection is flagged for weeding in each round of the simulation. If a book is checked out at the time weeding flags are assigned though, that flag is assigned to a different (not in circulation) book. This is done to ensure circulating books are not weeded. However, if a textbook is flagged for deduplication while it is in circulation, it is still deduplicated when if it is returned.
 
+- __New Acquisitions__: 
+2% - purchased
 
 - etc..
 
-The results of 1000 trials of the R-based simulation model are aggregated to allow us to determine which set of simulation inputs yields the smallest number of shelf shifts for the given 1,000 volume collection.
+The results of 1,000 trials of the R-based simulation model are aggregated to allow us to determine which set of simulation inputs yields the smallest number of shelf shifts for the given 1,000 volume collection over the most rounds of collection maintance activities while sending as few books as possible to off-site storage.
 
-??? __How to we plan to validate the model??__
+__Overview of Simulation Logic__:    
+Simple flow chart of simulation for clarity?   
+
+__Model Validation__:
 
 - subjective test: SME (i.e., Daina)
 
 - build model with high face validity
+
 - validate model assumptions (SME again)
 
 - Potential user involved in model construction from conceptualization through implementation
 
-
-
 # Results
 
-Many anecdotes of 6" of space per shelf being a good guess found on internet...
-
+[insert box plot, results table with titles and axes lables]
+Discussion
 
 # Summary and Future Works
 
 The purpose of our research was to attempt to ...
-
 
 It is important to note that these conclusions apply *only* to ...
 
 
 # References
 
-[1] https://www.libraries.rutgers.edu/rul/staff/access_serv/coll_mgt/overview_of_shifting.pdf
+[1] http://library.cfa.harvard.edu/
 
-[2] https://scholarsbank.uoregon.edu/xmlui/bitstream/handle/1794/12208/Moving+Library+Collections_+UO+Libraries2.pdf?sequence=1
+[2] https://www.libraries.rutgers.edu/rul/staff/access_serv/coll_mgt/overview_of_shifting.pdf
 
-[3] https://osc.hul.harvard.edu/liblab/projects/collection-shift-estimation-visualization-tool
+[3] https://scholarsbank.uoregon.edu/xmlui/bitstream/handle/1794/12208/Moving+Library+Collections_+UO+Libraries2.pdf?sequence=1
 
-Paxton, Pamela, et al. "Monte Carlo experiments: Design and implementation." Structural Equation Modeling 8.2 (2001): 287-312.
+[4] http://www.tandfonline.com/doi/abs/10.1300/J105v05n01_07
 
-Homem-de-Mello, Tito, and Güzin Bayraksan. "Monte Carlo sampling-based methods for stochastic optimization." Surveys in Operations Research and Management Science 19.1 (2014): 56-85.
+[5] https://osc.hul.harvard.edu/liblab/projects/collection-shift-estimation-visualization-tool
 
+[6] http://www.tandfonline.com/doi/abs/10.1080/01462679.2016.1212755
+
+[7] http://www.aautomate.com/products/shelf-space-manager
+
+[8] Paxton, Pamela, et al. "Monte Carlo experiments: Design and implementation." Structural Equation Modeling 8.2 (2001): 287-312.
+
+[9] Homem-de-Mello, Tito, and G?zin Bayraksan. "Monte Carlo sampling-based methods for stochastic optimization." Surveys in Operations Research and Management Science 19.1 (2014): 56-85.
+
+[10] https://www.graphicstandards.com/
 
 __--------------------------------------------------------------------------------------------------------------------------__
 
@@ -119,6 +137,4 @@ __------------------------------------------------------------------------------
 This Appendix contains the research results, source R code, and associated relevant output from our final writeup and our simulation efforts. Additional supplemental graphics and detailed explanations of our simulation efforts are also included.
 
 __--------------------------------------------------------------------------------------------------------------------------__
-
-## Results of Simulation: (state what the parameters were)
 
