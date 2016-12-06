@@ -46,9 +46,7 @@ The following facts are illustrative of Wolbach's practices and the benefits of 
 
 Our literature review focused on identifying applicable simulation strategies from the fields of library science and Monte Carlo simulation. Within the field of library science there are established methods and guidelines for shelf shifting [2] or adding shelving to libraries [3] and even for completely rearranging library spaces to accomodate more books [4]. However, estimating the amount of space to leave empty on a shelf for purposes of minimizing shelf shifts is somewhat imprecise. For example, documents and tools exist for estimating shelf space, time, and resources needed to shift a known collection [5] and there have been methods developed to inform decisions about shifting collections off site for the re-organization of a library [6]. In fact there are even commercial products available to help libraries with large collections move to a new building; for expanding existing shelving; for moving to entirely new locations; and for shifting books to more evenly distribute space within existing shelving [7]. However, there appear to be no specific tools available for estimating the ideal amount of shelf space to leave open for purposes of minimizing the need for shelf shifts and maximizing the number of volumes kept on site. There seem to be no known applications of simulation for these puposes either. Many libraries develop their own ad-hoc approaches to estimating collection growth rates (note: ad-hoc growth rates are generally only applicable to periodical collections) or fall back on rules-of-thumb. For instance, there are numerous anecdotal references online to the general idea that one should leave at least 6 inches of space open on each shelf, but anecdotes do not appear to be based on any type of mathematical or scientific analysis. Instead, it is common industry practice to leave space for at least one human hand width at each end of a shelf when shifting.
 
-The specific monte carlo simulation strategies...
-
-insert articles [8 and 9] about monte carlo -- do you think it's appropriate to site the book or just articles? We need a few more I think.
+Monte Carlo simulation is a widely used method for solving both optimization and numerical integration problems through the use of random sampling. The general approach to problem solving through use of the method is well documented [8] as is the manner in which Monte Carlo simulation can be applied to various types of optimization problems [9], [10]. However, as was alluded to above, there appears to be no documented use of Monte Carlo simulation for purposes of minimizing the need for shelf shifting within a library while retaining the largest possible number of books on site. This apparent lack of prior application of Monte Carlo methods to such a problem suggests that the work described herein may, in fact, be novel.
 
 # Methodology
 
@@ -64,7 +62,7 @@ To address this question a Monte Carlo simulation of a small 1,000 volume librar
 
 - __Types of Books/Volumes__: There are two types of books in the simulation: textbooks and non-textbooks. 5% of the collection is assumed to be master copies of textbooks at the start of the simulation. Multiple copies of a textbook are typically housed within the library; e.g., multiple copies of new physical textbooks are routinely purchased for the small number of undergraduate Astronomy courses taught each semester at the Harvard-Smithsonian Center for Astrophysics, and duplication of textbooks is typical within any given subsection of the library. Within the simulation, the number of copies of a textbook is determined by randomly sampling from a uniform distribution bounded by (1, 3). By contrast, non-textbooks are generally not duplicated within the library.
 
-- __Book Widths__: The width of the simulated books varies between 1 and 2 inches according to a triangular approximation of a normal distribution. As such, when a book is added to the library a random sample from a triangular (1, 2) bound distribution is used to determine the width of that book. This distribution is based on architectual graphics standards used in library space design [10]. By defaulting to these standards the simulated library collection does not need to distinguish between paperback and hardcover volumes.
+- __Book Widths__: The width of the simulated books varies between 1 and 2 inches according to a triangular approximation of a normal distribution. As such, when a book is added to the library a random sample from a triangular (1, 2) bound distribution is used to determine the width of that book. This distribution is based on architectual graphics standards used in library space design [11]. By defaulting to these standards the simulated library collection does not need to distinguish between paperback and hardcover volumes.
 
 - __Shelves__: A total of fifty (50) 36 inch shelves are available for storage of the simulated library collection. Books are assigned to the simulated shelves in a serial manner at the start of the simulation until a user-specified minimum amount of free space remains on a given shelf. Once that minimum amount is achieved, shelving continues on the next available shelf. Any volumes not shelvable due to space constraints are sent "off-site" for the purposes of the simulation. The total number of shelves (50) represents the typical amount of shelving designated for a small subcollection within Wolbach Library.
 
@@ -98,7 +96,7 @@ The simulation API consists of a pair of dataframes (books and shelves) that rep
 
 ![](booksimAPI_logic.png)
 
-Dataframes for books and shelves are first initialized along with several counter variables that represent the number of iterations, number of current full shelves and number of discarded books. A reshelve threshold is also set to 5 for our simulation, along with the amount of initial free shelf space for each set of experiments.  
+Dataframes for books and shelves are first initialized along with several counter variables that represent the number of iterations, number of current full shelves and number of discarded books. A reshelf threshold is also set to 5 for our simulation, along with the amount of initial free shelf space for each set of experiments.  
 
 After initialization, the system enters a loop and each method is called on the books dataframe. After any additive or subtractive method call the "update shelves" method is called to update the status of each shelf. The solid arrow in the chart represents the flow of the books dataframe through this series of changes. 
 
@@ -146,9 +144,11 @@ It is important to note that these conclusions apply *only* to ...
 
 [8] Paxton, Pamela, et al. "Monte Carlo experiments: Design and implementation." Structural Equation Modeling 8.2 (2001): 287-312.
 
-[9] Homem-de-Mello, Tito, and G?zin Bayraksan. "Monte Carlo sampling-based methods for stochastic optimization." Surveys in Operations Research and Management Science 19.1 (2014): 56-85.
+[9] Homem-de-Mello, Tito, and Guzin Bayraksan. "Monte Carlo sampling-based methods for stochastic optimization." Surveys in Operations Research and Management Science 19.1 (2014): 56-85.
 
-[10] https://www.graphicstandards.com/
+[10] Li, S.P.. "A Guided Monte Carlo Method for Optimization Problems." International Journal of Modern Physics C 13.10 (2002): 1365-1374
+
+[11] https://www.graphicstandards.com/
 
 __--------------------------------------------------------------------------------------------------------------------------__
 
