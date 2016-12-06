@@ -2,7 +2,7 @@
 title: "Optimized Decision Making About Library Shelf Space Through Simulation"
 author: "Daina Bouquin, John DeBlase, James Topor"
 date: "December 5, 2016"
-output: pdf_document
+output: html_document
 geometry: margin=2.2cm
 ---
 
@@ -93,7 +93,18 @@ To address this question a Monte Carlo simulation of a small 1,000 volume librar
 The R-based simulation allows us to evaluate the effects of a variety of initial free shelf space values. Specifically, the R code implements and aggregates the results of 100 simulations for each of the initial free shelf space values of 3, 3.5, 4, 4.5, 5, 5.5, and 6 inches. A single run of the simulation is deemed to be complete whenever at least 5 library shelves become "full" according to the __Shelf Filling__ description given above. The results of the simulations for the various initial free shelf space values are then tabulated and compared to allow us to determine which of the initial free shelf space value allows for the smallest average number of shelf shifts for the given 1,000 volume collection while sending as few books as possible to off-site storage.
 
 __Overview of Simulation Logic__:    
-Simple flow chart of simulation for clarity?   
+
+The simulation API consists of a pair of dataframes (books and shelves) that represent the contents of the library and a set of methods that act upon those dataframes. The flowchart below outlines the tasks performed by those methods and the logic for each run. 
+
+![](booksimAPI_logic.png)
+
+Dataframes for books and shelves are first initialized along with several counter variables that represent the number of iterations, number of current full shelves and number of discarded books. A reshelve threshold is also set to 5 for our simulation, along with the amount of initial free shelf space for each set of experiments.  
+
+After initialization, the system enters a loop and each method is called on the books dataframe. After any additive or subtractive method call the "update shelves" method is called to update the status of each shelf. The solid arrow in the chart represents the flow of the books dataframe through this series of changes. 
+
+Once the number of full shelves is greater than or equal to the reshelf threshold for the experiment, the loop breaks and the results are returned to the parent scope. 
+
+In a complete simulation, 100 such experiments are performed and the results aggregated for a sequence of increasing intial free shelf space values as described above in **Running the Simulation**.
 
 __Model Validation__:
 
@@ -148,5 +159,412 @@ __------------------------------------------------------------------------------
 
 This Appendix contains the research results, source R code, and associated relevant output from our final writeup and our simulation efforts. Additional supplemental graphics and detailed explanations of our simulation efforts are also included.
 
+
+## Code Appendix
+
+#### setup.R
+
+The setup method initializes and returns the books and shelves dataframes to the parent scope.
+
+```{r, eval=F}
+setup = function(Nvols, Nshelves, shelf_width, sfree_space, textb_masters){
+    
+    library(triangle)
+    
+    # set max shelf space allowed to be consumed by books at start of simulation
+    # sfree_space represents the total amount of free space in INCHES
+    max_shelved <- shelf_width - sfree_space
+
+    # Initialize 'books' data frame
+    books <- data.frame(book_id = 1:Nvols, btype = character(Nvols), copym = numeric(Nvols), 
+                        dupeof = numeric(Nvols), shelf_id = numeric(Nvols), width = numeric(Nvols),
+                        chkdout =numeric(Nvols), dedupe = numeric(Nvols), stringsAsFactors = FALSE)
+    
+    # set book widths: distrib is between 1-2 inches; assume UNIFORM distribution
+    # now sample from triangular distribution: Number of samples = number of books ('Nvols')
+    a <- 1 ; b <- 2 # upper/lower bound 
+    books$width <- rtriangle(Nvols, a, b, (a + b)/b )
+    
+    books$btype <- 'n' # initialize book type to n for non-textbook
+    
+    # then set percentage of books to textbook to textbook master copies
+    # start by picking random sample of books
+    tbm <- sort(sample(books$book_id, (Nvols * textb_masters), replace = FALSE))
+    
+    # For each book_id in tbm, set btype = 't', copym = 1, and create copies of
+    for (i in tbm) {
+        # if the book has not already been set to type 't', proceed
+        # otherwise ignore and continue
+        if (books$btype[i] != 't') {
+            # set btype to 't'
+            books$btype[i] <- 't'
+            # set copym to '1'
+            books$copym[i] <- 1
+            # get number of copies of textbook via random uniform sample between 1 and 3
+            tb_copies <- round(runif(1, min = 1, max = 3))
+            
+            # create copies of textbook directly adjacent to master copy
+            k <- i + 1
+            while (k <= Nvols & (k <= i + tb_copies) ) {
+                books$btype[k] <- 't'
+                books$dupeof[k] <- books$book_id[i]
+                # set width of copy to width of master
+                books$width[k] <- books$width[i]
+                k <- k + 1
+            }
+        } 
+    } 
+
+    # Initialize 'shelves' data frame  --> full 0 or 1 flag for whether shelf is full
+    shelves <- data.frame(shelf_id = 1:Nshelves, in_use = numeric(Nshelves), 
+                          perc_used = numeric(Nshelves), full=numeric(Nshelves), stringsAsFactors = FALSE)
+    
+    k <- 1
+    # sum book widths to ensure they don't exceed (max shelf width - free_space)
+    for (i in 1: Nshelves) {
+        # while space used on shelf < max space consumed by books and book index < Nvols
+        while ((shelves$in_use[i] + books$width[k]) < max_shelved & (k <= Nvols) ) {
+            # assign shelf to next book
+            books$shelf_id[k] <- shelves$shelf_id[i]
+            # add width of book to total used on current shelf
+            shelves$in_use[i] <- shelves$in_use[i] + books$width[k]
+            k <- k + 1
+        } 
+    } 
+    
+    ###########################
+    # remove all books that were not able to be shelved
+    books <- books[which(books$shelf_id != 0),]
+    
+    # calculate number of deleted books
+    delbks <- Nvols - nrow(books)
+
+    # select 10% of book_id values to set to 'checked out' status
+    c_out <- sample(books$book_id, (nrow(books) * .10), replace = FALSE)
+    
+    # For each book_id in c_out, set chkdout = 1 and subtract
+    # book width from shelf space used for appropriate shelf_id
+    for (i in c_out) {
+        # set chkdout flag to 1
+        books$chkdout[i] <- 1
+        # subtract width of chkdout book from space in use on its assigned shelf
+        shelves$in_use[books$shelf_id[i]] <- shelves$in_use[books$shelf_id[i]] - books$width[i]
+    }
+    shelves$perc_used = shelves$in_use/shelf_width  # sets perc_used
+    
+    return(list(books=books, shelves=shelves, delbks = delbks)) # return books shelves
+    
+}
+
+```
+
+### methods.R  
+
+The public API that acts on the books and shelves dataframes. 
+
+
+```{r, eval=F}
+# Utility functions
+
+# helper function that duplicates textbooks and assigns ids
+duplicate_textbooks = function(last_indx, texts){     
+    
+    texts$book_id = seq(last_indx+1, last_indx+nrow(texts))  # id and set to master
+    texts$copym = 1
+    
+    for(i in 1:nrow(texts)){
+        n_dups = runif(1,1,3)
+        dups = data.frame(lapply(texts, function(j){ 
+            rep(j[i],n_dups) 
+        }))
+        dups$copym = 0                  # unset master, set btype, dupeof id
+        dups$btype = 't'
+        dups$dupeof = dups$book_id
+        texts = rbind(texts,dups)             # bind to purchase order
+    }
+    texts$book_id = seq(last_indx+1, last_indx+nrow(texts))      # reset book ids
+    return(texts)
+}
+
+
+book_widths = function(n,a,b){        # utility returns book widths between a and b for n books
+    rtriangle(n, a, b, (a + b)/b )
+}
+
+get_shelf_ids = function(shelves){    # return vector of shelf ids that are available for shelving
+    shelves$shelf_id[which(!shelves$full)]
+}
+
+# Simulation processes API
+
+# updates shelves dataframe at end of each round 
+update_shelves = function(books, shelves, shelf_width){
+    
+    for (i in 1:nrow(shelves)){ 
+        new_width = sum(books[which(books$shelf_id==i & !books$chkdout),]$width) # calculate new width
+        shelves[shelves$shelf_id==i,]$in_use = new_width        # set new widths for each shelf
+    }
+    shelves$perc_used = shelves$in_use/shelf_width  # reset perc_used
+    shelves$full[which(shelves$perc_used > 0.95)] = 1  # set flag at full greater than 95%
+    # if shelf was full and books are removed(deduping or checkout) set back to zero
+    shelves$full[which(shelves$perc_used <= 0.95 & shelves$full == 1)] = 0
+    
+    return(shelves)
+}
+
+# set of purchases - 5 to 25 books (simulated book widths)
+# set of textbook purchases (simulated book widths) - 2 copies of 3 to 5 books
+# set flag to 'n', 't' for text-book or non-textbook
+# return a new dataframe to be appended to books in outer scope
+# this is a blank order... all field's build/add logic is done in the add()/update_shelves() functions
+purchase_books = function(flag, min=5, max=26){
+    
+    if (flag=='n')      # branch for text/nontext -- R throws an exception if not 'n /'t'
+        n_books = round(runif(1,min,max))
+    else if (flag=='t')
+        n_books = round(runif(1,min,max))
+    
+    width = book_widths(n_books,1,2) # calls utility function book_widths()
+    btype = rep(flag,n_books)       # sets flags
+    
+    book_id = copym = dupeof = shelf_id = chkdout = dedupe = rep(0,n_books)
+    purchase_order = data.frame(
+        book_id, btype,copym,dupeof,shelf_id,width,chkdout,dedupe
+    )
+    
+    return(purchase_order)
+} 
+
+# special logic for appending a textbook df to main library df
+# textbooks need to be shelved together
+add_textbooks = function(books,new_books, shelves){
+    
+    last_indx = tail(books$book_id,1)
+    new_books$shelf_id = sample(get_shelf_ids(shelves),nrow(new_books)) # shelf ids assigned before duplication
+    new_books = duplicate_textbooks(last_indx,new_books)
+    books = rbind(books,new_books)
+    return(books)
+}
+
+
+
+#speical logic for appending a non-textbook df to main library df
+add_non_textbooks = function(books,new_books, shelves){
+    
+    last_indx = tail(books$book_id,1)
+    new_books$book_id = seq(last_indx+1, last_indx+nrow(new_books))
+    new_books$shelf_id = sample(get_shelf_ids(shelves),nrow(new_books)) # assign shelf id from available shelves
+    books = rbind(books,new_books)
+    return(books)
+}
+
+
+# round of weeding - 2% of the collection -> DO NOT weed books that have been checked out
+weeding = function(books, perc=0.02){
+    n_to_pull = round(nrow(books) * perc) # number of rows to randomly pull
+    books = books[-sample(which(!books$chkdout), n_to_pull), ] # pull em, update and return
+    # renumber indices of rows after removal of books
+    rownames(books) <- 1:nrow(books)
+    return(books)
+}
+
+
+# round of de-duplicating (textbooks) - follows logic in email. Last step in process
+de_dup = function(books){
+    
+    # n number of textbooks to dedupe
+    n_dedup = round(runif(1,1,5))
+    # get book ids for the master copies to be deduped 
+    master_ids = books[sample(which(books$copym==1),n_dedup),]$book_id
+   
+    # set dedupe flags for any duplicates with chkdout=1; pull the ones with chkdout=0
+    if(length(books[which(books$dupeof %in% master_ids & books$chkdout==1), ]$dedupe > 0))
+        books[which(books$dupeof %in% master_ids & books$chkdout==1), ]$dedupe = 1
+    
+    # if there is a subset of duplicates that are not checked out remove them 
+    if(nrow(books[which(books$dupeof %in% master_ids & books$chkdout==0), ])!=0)
+        books = books[-which(books$dupeof %in% master_ids & !books$chkdout), ]
+    
+    # renumber indices of rows after removal of books
+    rownames(books) <- 1:nrow(books)
+    
+    return(books)
+}
+
+# 2% of the collection gets newly checked out -> check flag
+# need to set deduping flag for textbooks that get checked out <<<<--
+check_outs = function(books, perc=0.02){
+    n_to_chkout = round(nrow(books) * perc) # number of rows to randomly checkout
+    book_chkout = books[sample(which(!books$chkdout), n_to_chkout), ]$book_id
+    
+    books$chkdout[books$book_id %in% book_chkout] = 1
+    return(books)
+}
+
+
+# 20% of the collection gets checked in (not the same as the check outs)
+check_ins = function(books, perc=0.2){
+    n_to_pull = round(length(books$chkdout[books$chkdout == 1])* perc) # 20% of previously checked out books (this might need to change) 
+    
+    book_returns = books[sample(which(books$chkdout==1), n_to_pull), ]
+    
+    # check_in deduping logic... if flag set to 1 in batch of returned books, remove from dataframe
+    if (any(book_returns$dedupe==1)){
+        dedupe_rows = book_returns[book_returns$dedupe == 1,]
+        books = books[-which(books$book_id %in% dedupe_rows$book_id), ] 
+        # renumber indices of rows after removal of books
+        rownames(books) <- 1:nrow(books)
+    }
+    
+    books$chkdout[books$book_id %in% book_returns$book_id] = 0
+    return(books)
+}
+
+```
+
+### single_sim.R
+
+Performs a single round of simulation by implementing the setup and API methods. The application logic is outlined in the above flowchart.
+
+```{r, eval=F}
+# Single sim wrapped in function
+source("setup.R")   # these need to be in the same folder...
+source("methods.R")
+
+single_sim = function(nvols=1000, nshelves=50, shelf_width=36, sfree_space=3, 
+                      textb_masters=0.05, reshelf_thresh=5, seed_val= NULL){
+    
+    set.seed(seed_val)   # specify seed
+    data = setup(nvols, nshelves, shelf_width, sfree_space, textb_masters) # returns list, need to set to two dfs
+    
+    #init books and shelves
+    books = data$books
+    shelves = data$shelves
+    delbks <- data$delbks
+    
+    counter = 0
+    full_count = 0
+    reshelf_thresh = 5
+    
+    while(T){
+        ### SIM CODE
+        books = weeding(books,0.02)
+        # need to update available shelf space after weeding
+        shelves= update_shelves(books,shelves,36)
+        
+        # purchase books - functions create data frames containing new books
+        # to be added to collection
+        new_texts = purchase_books('t',3,6)
+        new_ntexts = purchase_books('n',5,26)
+        
+        # append data frame containing new_ntexts to books data frame
+        books = add_non_textbooks(books,new_ntexts,shelves) # needs logic for checking shelf availability
+        shelves= update_shelves(books,shelves,36)
+        
+        # append data frame containing new_texts to books data frame
+        books = add_textbooks(books,new_texts,shelves) # needs logic for checking shelf availability
+        shelves= update_shelves(books,shelves,36)
+        
+        books = check_ins(books,0.2) # needs logic for checking shelf availability
+        shelves= update_shelves(books,shelves,36)
+        
+        books = check_outs(books,0.02)
+        shelves= update_shelves(books,shelves,36)
+        
+        books = de_dup(books)
+        shelves= update_shelves(books,shelves,36)
+        ####
+        
+        full_count = sum(shelves$full)       # get number full 
+        if(full_count >= reshelf_thresh)     # break if >= threshold
+            break
+        counter = counter + 1
+    }
+    
+    # clear memory of data, books, shelves
+    rm(data, books, shelves)
+    
+    # The counter value is number of rounds  
+    # return(counter)
+    return(list(iters = counter, delbks = delbks))
+}
+
+```
+
+### main.R 
+
+The main simulation code. This script soruces the single_sim file, runs 100 simulations on an increasing amount of inital shelf space and returns the results.
+
+_NOTE: A parallelized version of main also exists in the repo that substantially cuts down on run time. This version is presented here for clarity._ 
+
+```{r, eval=F}
+library(knitr)
+
+# setwd("path/to/simulation")
+
+source("single_sim.R")  # import single_sim... 
+
+# set the sequence for the required amounts of free shelf space
+free_inches <- seq(3, 6, 0.5)
+
+df_dim <- length(free_inches)
+
+# create data frame to store results of separate simulations for different free shelf space values
+res_master <- data.frame(Inches = free_inches, mu = numeric(df_dim), mdn = numeric(df_dim),
+                         min = numeric(df_dim), max = numeric(df_dim))
+
+# create a vector to store results of 100 sims of one free shelf space value
+sim_results = numeric(100)
+del_bks = numeric(100)
+
+# for each item in the free shelf space sequence, run the full simulation
+# and collect results
+df_ind <- 1
+
+# create a data frame to store all simulation results for use outside of the for loop
+bxp_df <- data.frame(matrix(, nrow=100, ncol=0))
+delbks_df <- data.frame(matrix(, nrow=100, ncol=0))
+
+for (k in free_inches) {
+  # run 100 iterations for each free shelf space value
+  for(i in 1:100){
+    res_list <- single_sim(sfree_space = k)
+    sim_results[i] <- res_list$iters
+    del_bks[i] <- res_list$delbks
+  }
+  
+  # add col containing sim results to boxplot dataframe
+  bxp_df <- cbind(bxp_df, sim_results)
+  # set the name of the new col to the number of inches of free space
+  colnames(bxp_df)[colnames(bxp_df) == 'sim_results'] <- toString(k)
+  
+  # add col containing del_bks to deleted books dataframe
+  delbks_df <- cbind(delbks_df, del_bks)
+  # set the name of the new col to the number of inches of free space
+  colnames(delbks_df)[colnames(delbks_df) == 'del_bks'] <- toString(k)
+  
+  # display results for free shelf space = k
+  print(sprintf("Free Space = %1.1f inches", k))
+  print(summary(sim_results))
+  xl <- sprintf("Free Space = %1.1f inches", k)
+  hist(sim_results, breaks = 20, col = 'yellow', xlab = xl)
+  
+  # create a boxplot of the results for free shelf space = k
+  # boxplot(sim_results, main = xl, col = 'yellow' )
+  
+  # store results in master results data frame
+  res_master$mu[df_ind] <- mean(sim_results)
+  res_master$mdn[df_ind] <- median(sim_results)
+  res_master$min[df_ind] <- min(sim_results)
+  res_master$max[df_ind] <- max(sim_results)
+  res_master$mu_delbks[df_ind] <- mean(del_bks)
+  
+  df_ind <- df_ind + 1
+}
+
+kable(res_master, caption = "Summary of All Simulation Runs")
+
+
+```
 __--------------------------------------------------------------------------------------------------------------------------__
 
