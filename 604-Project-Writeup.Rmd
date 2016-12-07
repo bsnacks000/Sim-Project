@@ -26,7 +26,7 @@ Shelf shifting is the process by which free space in a library's collection can 
 
 With this context in mind, our research attempts to answer the question:
 
-- What is the ideal amount of space to leave empty on a book shelf to minimize the need to shelf shift while also accomodating the largest possible quantity books?
+- What is the ideal amount of space to leave empty on a book shelf to minimize the need to shelf shift while accomodating the largest possible quantity of books?
 
 Implicit in this research question is the goal of limiting the amount of time needed to maintain the library's physical collection. For example, if a library can improve its ability to predict when a shelf shifting initiative will likely be required based on variables such as the number of books periodically added, weeded, and de-duplicated within a collection, the library might not only be able to take steps to minimize the need for shelf shifting but also more effectively plan and budget for any required shelf shifts when they do occur.
 
@@ -52,39 +52,39 @@ Monte Carlo simulation is a widely used method for solving both optimization and
 
 As stated in the __Introduction__, our research was focused on attempting to answer the following question:
 
-- What is the ideal amount of space to leave empty on a book shelf to minimize the need to shift and to accomodate the largest possible quantity books?
+- What is the ideal amount of space to leave empty on a book shelf to minimize the need to shelf shift while accomodating the largest possible quantity of books?
 
 To address this question a Monte Carlo simulation of a small 1,000 volume library collection was developed using __R__. The simulation model relies on a variety of assumptions and constraints, each of which is described below. The assumptions and constraints are based on generalized metrics gathered relative to Wolbach Library's physical collection, community, and practices. For the purposes of building an easy to adapt proof-of-concept tool, the collection is substantially simplified. Each of the assumptions listed below can be adjusted to accomodate differing parameters within different library contexts.
 
 ### Assumptions
 
-- __Number of Books/Volumes__: The simulated library collection is comprised of a total of 1,000 books. This represents a single, relatively small, collection within the broader library collection.
+- __Number of Books/Volumes__: The simulated library collection is comprised of a total of __1,000 books__. This represents a single, relatively small, collection within the broader library collection.
 
-- __Types of Books/Volumes__: There are two types of books in the simulation: textbooks and non-textbooks. 5% of the collection is assumed to be master copies of textbooks at the start of the simulation. Multiple copies of a textbook are typically housed within the library; e.g., multiple copies of new physical textbooks are routinely purchased for the small number of undergraduate Astronomy courses taught each semester at the Harvard-Smithsonian Center for Astrophysics, and duplication of textbooks is typical within any given subsection of the library. Within the simulation, the number of copies of a textbook is determined by randomly sampling from a uniform distribution bounded by (1, 3). By contrast, non-textbooks are generally not duplicated within the library.
+- __Types of Books/Volumes__: There are two types of books in the simulation: textbooks and non-textbooks. __5%__ of the collection is assumed to be master copies of textbooks at the start of the simulation. Multiple copies of a textbook are typically housed within the library; e.g., multiple copies of new physical textbooks are routinely purchased for the small number of undergraduate Astronomy courses taught each semester at the Harvard-Smithsonian Center for Astrophysics, and duplication of textbooks is typical within any given subsection of the library. Within the simulation, the number of copies of a textbook is determined by randomly sampling from a uniform distribution bounded by __(1, 3)__. By contrast, non-textbooks are generally not duplicated within the library.
 
-- __Book Widths__: The width of the simulated books varies between 1 and 2 inches according to a triangular approximation of a normal distribution. As such, when a book is added to the library a random sample from a triangular (1, 2) bound distribution is used to determine the width of that book. This distribution is based on architectual graphics standards used in library space design [11]. By defaulting to these standards the simulated library collection does not need to distinguish between paperback and hardcover volumes.
+- __Book Widths__: The width of the simulated books varies between 1 and 2 inches according to a triangular approximation of a normal distribution. As such, when a book is added to the library a random sample from a triangular __(1, 2)__ bound distribution is used to determine the width of that book. This distribution is based on architectual graphics standards used in library space design [11]. By defaulting to these standards the simulated library collection does not need to distinguish between paperback and hardcover volumes.
 
-- __Shelves__: A total of fifty (50) 36 inch shelves are available for storage of the simulated library collection. Books are assigned to the simulated shelves in a serial manner at the start of the simulation until a user-specified minimum amount of free space remains on a given shelf. Once that minimum amount is achieved, shelving continues on the next available shelf. Any volumes not shelvable due to space constraints are sent "off-site" for the purposes of the simulation. The total number of shelves (50) represents the typical amount of shelving designated for a small subcollection within Wolbach Library.
+- __Shelves__: A total of __fifty (50) 36 inch shelves__ are available for storage of the simulated library collection. Books are assigned to the simulated shelves in a serial manner at the start of the simulation until a user-specified minimum amount of free space remains on a given shelf. Once that minimum amount is achieved, shelving continues on the next available shelf. Any volumes not shelvable due to space constraints are sent "off-site" for the purposes of the simulation. The total number of shelves (50) represents the typical amount of shelving designated for a small subcollection within Wolbach Library.
 
-- __Books in Circulation__: We assume that 10% of the total collection has been checked out for use by various library patrons prior to the start of the simulation. This value is a simplified assumption based on averages of monthly "COUNTER" statistics pulled from Harvard's __Cognos__ reporting tool for Wolbach's non-periodical collection and could be modified for any specific collection's circulation rate. Collection circulation rates tend to be seasonal in nature and are not typically tracked at the level of a subcollection. The width of any book that is in circulation is added back to the amount of free space available on the relevant shelf.
+- __Books in Circulation__: We assume that __10%__ of the total collection has been checked out for use by various library patrons prior to the start of the simulation. This value is a simplified assumption based on averages of monthly "COUNTER" statistics pulled from Harvard's __Cognos__ reporting tool for Wolbach's non-periodical collection and could be modified for any specific collection's circulation rate. Collection circulation rates tend to be seasonal in nature and are not typically tracked at the level of a subcollection. The width of any book that is in circulation is added back to the amount of free space available on the relevant shelf.
 
-- __Percentage of Books Weeded__: Wolbach Library's general collection development policy is in the process of being reassessed, however, a general plan is in place to begin executing a regular weeding policy. The simulation reflects that policy in that 2% of the simulated collection is flagged for weeding during each round of the simulation. If a book is checked out at the time weeding it is considered exempt from weeding for that round of the simulation. This is done to ensure circulating books are not weeded. 
+- __Percentage of Books Weeded__: Wolbach Library's general collection development policy is in the process of being reassessed, however, a general plan is in place to begin executing a regular weeding policy. The simulation reflects that policy in that __2%__ of the simulated collection is flagged for weeding during each round of the simulation. If a book is checked out at the time weeding it is considered exempt from weeding for that round of the simulation. This is done to ensure circulating books are not weeded. 
 
-- __Number of Textbooks De-Duplicated__: We determine the number of textbooks to be de-duplicated during each round of the simulation by sampling from a uniform (1,5) bound distribution. A corresponding number of textbooks is then randomly selected from the simulated collection for de-duplication. During de-duplication, all copies of the selected textbooks are removed from the collection. However, a master copy is retained. If a copy of a textbook is flagged for de-duplication while it is in circulation, it is not immediately removed from the simulated collection but instead is flagged for removal when it is returned to the library.
+- __Number of Textbooks De-Duplicated__: We determine the number of textbooks to be de-duplicated during each round of the simulation by sampling from a uniform __(1,5)__ bound distribution. A corresponding number of textbooks is then randomly selected from the simulated collection for de-duplication. During de-duplication, all copies of the selected textbooks are removed from the collection. However, a master copy is retained. If a copy of a textbook is flagged for de-duplication while it is in circulation, it is not immediately removed from the simulated collection but instead is flagged for removal when it is returned to the library.
 
-- __Percentage of Books Checked In__: We assume that 20% of books currently in circulation are returned to the library during each round of the simulation. Books to be checked back in are selected via simple random sampling of the books currently in circulation.
+- __Percentage of Books Checked In__: We assume that __20%__ of books currently in circulation are returned to the library during each round of the simulation. Books to be checked back in are selected via simple random sampling of the books currently in circulation.
 
-- __Percentage of Books Checked Out__: We assume that 2% of books currently __not__ in circulation are randomly selected for check out during each round of the simulation.
+- __Percentage of Books Checked Out__: We assume that __2%__ of books currently __not__ in circulation are randomly selected for check out during each round of the simulation.
 
-- __New Textbook Acquisitions__: We assume that between 3 and 6 new textbooks and associated copies will be added to the collection during each round of the simulation. The number of copies to be added to the master copy for each new textbook purchased is determined by sampling from a uniform (1,3) bound distribution. Non-full shelves are randomly selected for each new textbook and associated copies are colocated on the same shelf.
+- __New Textbook Acquisitions__: We assume that __between 3 and 6__ new textbooks and associated copies will be added to the collection during each round of the simulation, with the exact number determined via random sampling from a uniform __(3,6)__ bound distribution. The number of copies to be added to the master copy for each new textbook purchased is determined by sampling from a uniform (1,3) bound distribution. Non-full shelves are randomly selected for each new textbook and associated copies are colocated on the same shelf.
 
-- __New Non-Textbook Acquisitions__: We assume that between 5 and 26 new non-textbooks are added to the collection during each round of the simulation. Random selection of non-full shelves is used to shelve the new non-textbooks.
+- __New Non-Textbook Acquisitions__: We assume that __between 5 and 26__ new non-textbooks are added to the collection during each round of the simulation, with the exact number determined via random sampling from a uniform __(5,26)__ bound distribution. Random selection of non-full shelves is used to shelve the new non-textbooks.
 
-- __Amount of Initial Free Shelf Space__: The simulation examines a series of initial free shelf space values ranging from 3 inches up to 6 inches in 0.5 inch increments. The amount of initial free shelf space is used during shelving of the virtual library collection at the start of each round of the simulation, with each of the 50 shelves guaranteed to have no less than the indicated amount of free space. 
+- __Amount of Initial Free Shelf Space__: The simulation examines a series of initial free shelf space values ranging from __3 inches__ up to __6 inches__ in 0.5 inch increments. (*NOTE: Six inches was selected as the upper bound for the range due to coincide with the "width of two human hands" shelf free space guideline espoused in many anecdotal library management discussions*). The amount of initial free shelf space is used during shelving of the virtual library collection at the start of each round of the simulation, with each of the 50 shelves guaranteed to have no less than the indicated amount of free space. 
 
-- __Shelf Filling__: A shelf is considered "full" if at least 95% of its available space has been consumed. When a shelf surpasses 95% use, no further new textbook acquisitions may be added to that shelf. However, books from such a shelf that are in circulation when the 95% usage bound is surpassed are returned to the shelf whenever they are returned to the library.
+- __Shelf Filling__: A shelf is considered "full" if at least __95%__ of its available space has been consumed. When a shelf surpasses 95% usage, no further new textbook acquisitions may be added to that shelf. However, books from such a shelf that are in circulation when the 95% usage boundary is surpassed are returned to the shelf whenever they are returned to the library despite the shelf having been deemed "full" for other purposes.
 
-- __Shelf Shift Required__: A shelf shift is assumed to be required whenever at least 5 shelves achieve "full" status.
+- __Shelf Shift Required__: A shelf shift is assumed to be required whenever at least __5__ shelves achieve "full" status.
 
 ### Running the Simulation
 
@@ -108,8 +108,18 @@ Of primary concern in the development of any simulation model is determining whe
 
 # Results
 
-[insert box plot, results table with titles and axes lables]
-Discussion
+The table below summarizes the results of running the simulation 100 times for each of the previously defined initial free shelf space values. The __Inches__ column represents the initial free shelf space value for the respective sets of 100 simulation runs while the __mu__ column represents the average number of simulated process loops completed prior to at least 5 virtual library shelves become filled with books. The median, minimum, and maximum number of completed simulated process loops are shown in the __mdn__, __min__, and __max__ columns, respectively, while the __mu_delbks__ column represents the average number of books shipped offsite due to lack of shelf space for the respective set of 100 simulation runs.
+
+![Image](table.png)
+
+As we can see in the table, increasing the initial free shelf space value from 3 inches to 3.5 inches does not appear to substantively increase the number of times the simulated process loop can be completed prior to the shelves becoming filled. The same can be said for increasing that value from 4 inches to 4.5 inches. However, increasing the value from 3 inches to 4 inches or from 4 inches to 5 inches does appear to substantively increase the number of times the simulated process loop can be completed prior to the shelves become filled. The boxplots shown below provide further evidence for this observation.
+
+![Image](boxes.png)
+
+In fact, the boxplots also appear to demonstrate a substantive delay to the need for shelf shifting if the initial free shelf space value is increased beyond 5 inches by any 0.5 inch increment. However, as shown in Table 1, this delay in the need for shelf shifting comes at the cost of having to send an ever increasing number of books to offsite storage. 
+
+### DAINA - YOUR INPUT NEEDED HERE - What do we want to conclude regarding the initial free shelf space amount?? Should it be no more than 4.5 inches or do we want to conclude that 5 inches is acceptable, or some other amount?? 
+
 
 # Summary and Future Works
 
@@ -487,7 +497,7 @@ single_sim = function(nvols=1000, nshelves=50, shelf_width=36, sfree_space=3,
 
 The main simulation code. This script soruces the single_sim file, runs 100 simulations on an increasing amount of inital shelf space and returns the results.
 
-_NOTE: A parallelized version of main also exists in the repo that substantially cuts down on run time. This version is presented here for clarity._ 
+_NOTE: A parallelized version of main also exists in the repo that substantially cuts down on run time. A non-parallelized version is presented here for clarity._ 
 
 ```{r, eval=F}
 library(knitr)
