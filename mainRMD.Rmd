@@ -3,12 +3,16 @@ title: "604 Final Project"
 author: "James Topor"
 date: "December 2, 2016"
 output: pdf_document
+geometry: margin=2.2cm
+
 ---
 
 ```{r}
 library(knitr)
 
-#setwd("c:/users/hammer/Documents/github/Sim_Project")
+set.seed(123)
+
+setwd("c:/users/hammer/Documents/github/Sim_Project")
 
 source("single_sim.R")  # import single_sim... 
 
@@ -19,8 +23,13 @@ df_dim <- length(free_inches)
 
 # create data frame to store results of separate simulations for different free shelf space values
 res_master <- data.frame(Inches = free_inches, mu = numeric(df_dim), mdn = numeric(df_dim),
-                         min = numeric(df_dim), max = numeric(df_dim), 
-                         mu_delbks = numeric(df_dim) )
+                         min = numeric(df_dim), max = numeric(df_dim), sd = numeric(df_dim),
+                         c_int = character(df_dim), stringsAsFactors = FALSE)
+
+# create data frame to store count of books moved to offsite storage 
+os_master <- data.frame(Inches = free_inches, mu = numeric(df_dim), mdn = numeric(df_dim),
+                         min = numeric(df_dim), max = numeric(df_dim), sd = numeric(df_dim),
+                         c_int = character(df_dim), stringsAsFactors = FALSE )
 
 # create a vector to store results of 100 sims of one free shelf space value
 sim_results = numeric(100)
@@ -61,19 +70,52 @@ for (k in free_inches) {
   # create a boxplot of the results for free shelf space = k
   # boxplot(sim_results, main = xl, col = 'yellow' )
   
-  # store results in master results data frame
+  # store iteration results in master results data frame
   res_master$mu[df_ind] <- mean(sim_results)
   res_master$mdn[df_ind] <- median(sim_results)
   res_master$min[df_ind] <- min(sim_results)
   res_master$max[df_ind] <- max(sim_results)
-  res_master$mu_delbks[df_ind] <- mean(del_bks)
+  res_master$sd[df_ind] <- round(sd(sim_results), 3)
+  # calculate 95% confidence interval: First we need SE = sd/sqrt(N)
+  SE <- sd(sim_results) / sqrt(100) 
+  lowerB <- mean(sim_results) - 1.96 * SE
+  upperB <- mean(sim_results) + 1.96 * SE
+  res_master$c_int[df_ind] <- toString(sprintf("(%2.3f, %2.3f)", lowerB, upperB))
+  
+  # store iteration results in master results data frame
+  os_master$mu[df_ind] <- mean(del_bks)
+  os_master$mdn[df_ind] <- median(del_bks)
+  os_master$min[df_ind] <- min(del_bks)
+  os_master$max[df_ind] <- max(del_bks)
+  os_master$sd[df_ind] <- round(sd(del_bks), 3)
+  # calculate 95% confidence interval: First we need SE = sd/sqrt(N)
+  SE <- sd(del_bks) / sqrt(100) 
+  lowerB <- mean(del_bks) - 1.96 * SE
+  upperB <- mean(del_bks) + 1.96 * SE
+  os_master$c_int[df_ind] <- toString(sprintf("(%2.3f, %2.3f)", lowerB, upperB))
   
   df_ind <- df_ind + 1
 }
+```
 
-boxplot(bxp_df)
+\newpage
 
-kable(res_master, caption = "Summary of All Simulation Runs")
+```{r}
+# side-by-side boxplots of number of iterations until shelf shift needed
+boxplot(bxp_df, main = "Results: # of Iterations Until Shelf Shift", xlab = "Initial Free Shelf Space Value (inches)", ylab = "# of Iterations Until Shelf Shift Required", col = "yellow")
 
+kable(res_master, caption = "Number of Iterations Until Shelf Shift Needed")
+```
+
+\newpage
+
+```{r}
+# linear plot avg number of books sent off site
+plot(x = os_master$Inches, y = os_master$mu, type = "line", col = "blue", lwd = 3,
+     xlab = "Initial Free Shelf Space Value (inches)",  
+     ylab = "Avg. # of Books Sent Off Site", 
+     main = "Results: Avg. # of Books Sent Off Site")
+
+kable(os_master, caption = "Number of Books Sent Off Site")
 
 ```
