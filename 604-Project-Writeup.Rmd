@@ -98,7 +98,7 @@ The simulation API consists of a pair of dataframes (books and shelves) that rep
 
 As shown in the flowchart, an initialization function is invoked at the start of each simulation. The initialization function is responsible for creating the virtual library that serves as the basis of the actual simulation run. At a high level, the initialization function can be thought of as creating a virtual collection of textbooks and non-textbooks and placing those books on virtual shelves subject to the constraints imposed by the book width, shelf count, shelf width, and shelf free space constraints described above in the __Assumptions__ section. Any books that are non-shelvable due to space constraints are are considered to have been shipped to off-site library storage, and the number of books presumed to have been sent off site is tallied. Additionally, 10% of the virtual books are set to a status of "checked out", thereby indicating that they are in circulation prior to the start of the simulation run. Finally, a handful of constants and counters are initialized, including a constant "reshelf" threshold that triggers the termination of an individual simulation run. As mentioned above, a simulation is terminated whenever at least 5 shelves become "full". Other constants initialized include the the various "initial free shelf space" values mentioned above.
 
-After initialization, the simulation enters a process loop wherein the methods mentioned previously are applied to the virtual library. Each method applied is representative of a particular library process. Specifically, books are weeded from the collection; new textbooks and copies thereof are added to the shelves; new non-textbooks are added to the shelves; some number of books in circulation are returned to the library (i.e., "checked in") and reshelved; some number of books are checked out by library patrons; and some number of textbooks are selected for "de-duplication", wherein excess copies of outdated textbooks are removed from the collection. After each iteration of this sequence the virtual library shelves are examined to determine whether the "reshelf" threshold has been exceeded. If so, the simulation terminates and a count of the number of successful process flow iterations is returned along with a count of the books that were sent to off site storage prior to the start of the simulation.
+After initialization, the simulation enters a process loop, or "cycle", wherein the methods mentioned previously are applied to the virtual library. Each method applied is representative of a particular library process. Specifically, books are weeded from the collection; new textbooks and copies thereof are added to the shelves; new non-textbooks are added to the shelves; some number of books in circulation are returned to the library (i.e., "checked in") and reshelved; some number of books are checked out by library patrons; and some number of textbooks are selected for "de-duplication", wherein excess copies of outdated textbooks are removed from the collection. Each of these cycles is meant to approximate roughly one year's worth of shelf activity for the Wolbach Library. After each iteration of this cycle the virtual library shelves are examined to determine whether the "reshelf" threshold has been exceeded. If so, the simulation terminates and a count of the number of successful cycles is returned along with a count of the books that were sent to off site storage prior to the start of the simulation. 
 
 As was mentioned above, 100 such simulations are performed for each initial free shelf space value and the results are aggregated for subsequent analysis.
 
@@ -108,15 +108,34 @@ Of primary concern in the development of any simulation model is determining whe
 
 # Results
 
-The table below summarizes the results of running the simulation 100 times for each of the previously defined initial free shelf space values. The __Inches__ column represents the initial free shelf space value for the respective sets of 100 simulation runs while the __mu__ column represents the average number of simulated process loops completed prior to at least 5 virtual library shelves become filled with books. The median, minimum, and maximum number of completed simulated process loops are shown in the __mdn__, __min__, and __max__ columns, respectively, while the __mu_delbks__ column represents the average number of books shipped offsite due to lack of shelf space for the respective set of 100 simulation runs.
+__How Soon Will A Shelf Shift Be Required?__
 
-![Image](table.png)
+Running the simulation 100 times for each of the previously defined initial free shelf space values allows us to approximate how soon the library will be required to engage in a shelf shifting effort for each of the respective initial free shelf space values. A summary of our findings for this time-based metric is provided in __Table 1__, where the __Inches__ column represents the initial free shelf space value for the respective sets of 100 simulation runs and the __mu__ column represents the average number of simulation cycles completed prior to at least 5 virtual library shelves become filled with books. As was mentioned above, each of the simulated cycles represents approximately one year's worth of shelf activity for the Wolbach Library. The median, minimum, and maximum number of completed simulation cycles are shown in the __mdn__, __min__, and __max__ columns, respectively, while the __sd__ column represents the standard deviation for the number of completed simulation cycles. Finally, the __c_int__ column represents the 95% confidence interval for the mean number of completed simulation cycles.
 
-As we can see in the table, increasing the initial free shelf space value from 3 inches to 3.5 inches does not appear to substantively increase the number of times the simulated process loop can be completed prior to the shelves becoming filled. The same can be said for increasing that value from 4 inches to 4.5 inches. However, increasing the value from 3 inches to 4 inches or from 4 inches to 5 inches does appear to substantively increase the number of times the simulated process loop can be completed prior to the shelves become filled. The boxplots shown below provide further evidence for this observation.
+\includegraphics[width=300pt]{Table1.png}
 
-![Image](boxes.png)
+Given that each simulation cycle represents approximately one year of library shelf activity, __Table 1__ shows that increasing the initial free shelf space value from 3 inches up to 6 inches more than doubles the amount of time the library might expect to pass before being required to engage in a shelf shifting effort. This result in and of itself is rather unsurprising since one would expect that a greater amount of initial free shelf space will delay the need for a shelf shift to a greater degree than will a relatively lesser amount of initial free shelf space. 
 
-In fact, the boxplots also appear to demonstrate a substantive delay to the need for shelf shifting if the initial free shelf space value is increased beyond 5 inches by any 0.5 inch increment. However, as shown in Table 1, this delay in the need for shelf shifting comes at the cost of having to send an ever increasing number of books to offsite storage. 
+__Table 1__ also clearly shows that the number of simulation cycles completed prior to at least 5 virtual library shelves become filled with books can vary greatly for any given initial free shelf space value due to the random variability inherent in the use and management of a library collection. For example, at 3 inches of initial free space we observe a minimum of 1 completed cycle and a maximum of 14. Similarly, at 4.5 inches of initial free space we observe a minimum of 1 completed cycle and a maximum of 21. However, the 95% confidence intervals shown in the rightmost column for each of the initial free shelf space values' 100 simulation runs indicate that, for practical purposes, the selection of any particular free shelf space value is likely to result in a delay in the need to shelf shift that is reasonably approximated by the respective __mu__ values shown in the table.
+
+The table also shows that increasing the initial free shelf space value from 4 inches to 4.5 inches does not appear to substantively increase the number of times the simulation cycle can be completed prior to the shelves becoming filled. However, increasing the value from 3 inches to 4 inches or from 4 inches to 5 inches does appear to substantively increase the number of times the simulation cycle can be completed prior to the shelves become filled. The boxplots shown below provide further evidence for this observation.
+
+\includegraphics[width=400pt]{boxes2.png}
+
+In fact, the boxplots also appear to demonstrate a substantive delay to the need for shelf shifting if the initial free shelf space value is increased beyond 5 inches by any 0.5 inch increment. However, as shown in __Table 2__ below, this delay in the need for shelf shifting comes at the cost of having to send an ever increasing number of books to offsite storage. 
+
+__How Many Books Must Be Shipped to Off Site Storage?__
+
+The simulation also allows us to evaluate whether an increase in the amount of initial free shelf space will result in an increase in the need for off site storage for some portion of the library's collection. __Table 2__ summarizes our findings regarding the need for offsite storage. The structure of __Table 2__ is analogous to that of __Table 1__ with the variable being analyzed in __Table 2__ representing the average number of books shipped offsite due to lack of shelf space for each respective set of 100 simulation runs.
+
+\includegraphics[width=300pt]{Table2.png}
+
+__Table 2__ clearly shows that the library should expect no increase in the number of books stored offsite unless the initial free shelf space value is set to at least 5 inches. At 5 inches, off site storage may be required for a very small number of books (mu = 0.15), though a 5 inch space would allow the library to extend the average amount of time between required shelf shifts from approximately 7.68 cycles to 9.17 cycles (see Table 1). Increasing the initial free space value beyond 5 inches results in a substantive increase in the number of books that must be sent off site due to the fact that imposing ever-larger free space constraints will necessarily reduce the amount of shelf space available for books. The figure shown below clearly summarizes this phenomena based on the results shown in __Table 2__.
+
+\includegraphics[width=350pt]{offsitebks-plt.png}
+
+--
+
 
 ### DAINA - YOUR INPUT NEEDED HERE - What do we want to conclude regarding the initial free shelf space amount?? Should it be no more than 4.5 inches or do we want to conclude that 5 inches is acceptable, or some other amount?? 
 
@@ -500,9 +519,12 @@ The main simulation code. This script soruces the single_sim file, runs 100 simu
 _NOTE: A parallelized version of main also exists in the repo that substantially cuts down on run time. A non-parallelized version is presented here for clarity._ 
 
 ```{r, eval=F}
+
 library(knitr)
 
-# setwd("path/to/simulation")
+set.seed(123)
+
+setwd("c:/users/hammer/Documents/github/Sim_Project")
 
 source("single_sim.R")  # import single_sim... 
 
@@ -513,7 +535,13 @@ df_dim <- length(free_inches)
 
 # create data frame to store results of separate simulations for different free shelf space values
 res_master <- data.frame(Inches = free_inches, mu = numeric(df_dim), mdn = numeric(df_dim),
-                         min = numeric(df_dim), max = numeric(df_dim))
+                         min = numeric(df_dim), max = numeric(df_dim), sd = numeric(df_dim),
+                         c_int = character(df_dim), stringsAsFactors = FALSE)
+
+# create data frame to store count of books moved to offsite storage 
+os_master <- data.frame(Inches = free_inches, mu = numeric(df_dim), mdn = numeric(df_dim),
+                        min = numeric(df_dim), max = numeric(df_dim), sd = numeric(df_dim),
+                        c_int = character(df_dim), stringsAsFactors = FALSE )
 
 # create a vector to store results of 100 sims of one free shelf space value
 sim_results = numeric(100)
@@ -554,18 +582,45 @@ for (k in free_inches) {
   # create a boxplot of the results for free shelf space = k
   # boxplot(sim_results, main = xl, col = 'yellow' )
   
-  # store results in master results data frame
+  # store iteration results in master results data frame
   res_master$mu[df_ind] <- mean(sim_results)
   res_master$mdn[df_ind] <- median(sim_results)
   res_master$min[df_ind] <- min(sim_results)
   res_master$max[df_ind] <- max(sim_results)
-  res_master$mu_delbks[df_ind] <- mean(del_bks)
+  res_master$sd[df_ind] <- round(sd(sim_results), 3)
+  # calculate 95% confidence interval: First we need SE = sd/sqrt(N)
+  SE <- sd(sim_results) / sqrt(100) 
+  lowerB <- mean(sim_results) - 1.96 * SE
+  upperB <- mean(sim_results) + 1.96 * SE
+  res_master$c_int[df_ind] <- toString(sprintf("(%2.3f, %2.3f)", lowerB, upperB))
+  
+  # store iteration results in master results data frame
+  os_master$mu[df_ind] <- mean(del_bks)
+  os_master$mdn[df_ind] <- median(del_bks)
+  os_master$min[df_ind] <- min(del_bks)
+  os_master$max[df_ind] <- max(del_bks)
+  os_master$sd[df_ind] <- round(sd(del_bks), 3)
+  # calculate 95% confidence interval: First we need SE = sd/sqrt(N)
+  SE <- sd(del_bks) / sqrt(100) 
+  lowerB <- mean(del_bks) - 1.96 * SE
+  upperB <- mean(del_bks) + 1.96 * SE
+  os_master$c_int[df_ind] <- toString(sprintf("(%2.3f, %2.3f)", lowerB, upperB))
   
   df_ind <- df_ind + 1
 }
 
-kable(res_master, caption = "Summary of All Simulation Runs")
+# side-by-side boxplots of number of iterations until shelf shift needed
+boxplot(bxp_df, main = "Results: # of Iterations Until Shelf Shift", xlab = "Initial Free Shelf Space Value (inches)", ylab = "# of Iterations Until Shelf Shift Required", col = "yellow")
 
+kable(res_master, caption = "Number of Iterations Until Shelf Shift Needed")
+
+# linear plot avg number of books sent off site
+plot(x = os_master$Inches, y = os_master$mu, type = "line", col = "blue", lwd = 3,
+     xlab = "Initial Free Shelf Space Value (inches)",  
+     ylab = "Avg. # of Books Sent Off Site", 
+     main = "Results: Avg. # of Books Sent Off Site")
+
+kable(os_master, caption = "Number of Books Sent Off Site")
 
 ```
 __--------------------------------------------------------------------------------------------------------------------------__
